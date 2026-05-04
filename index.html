@@ -3,10 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<!-- 开启 iOS 全屏 App 模式 -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Order Terminal Pro V3.6</title>
+<title>Order Terminal Pro V3.6.3</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -14,14 +13,14 @@
     --card: #111111;
     --key: #222222;
     --accent: #FF9F0A; 
-    --history: #00E5FF; /* 清爽青绿色 */
+    --history: #00E5FF; 
     --text: #ffffff;
     --danger: #FF453A; 
     --next: #333333;
   }
 
+  /* 基础布局 */
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
   body {
     font-family: 'Outfit', sans-serif;
     background: var(--bg);
@@ -33,10 +32,12 @@
     padding-top: env(safe-area-inset-top);
   }
 
+  /* 顶部状态栏 */
   .header { padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; }
   .header h1 { font-size: 12px; color: #444; letter-spacing: 2px; }
   #settingsBtn { background: none; border: 1px solid #333; color: #888; padding: 4px 10px; border-radius: 6px; font-size: 14px; }
 
+  /* 显示屏 */
   .display-area { padding: 5px 16px; }
   .display {
     background: var(--card);
@@ -47,7 +48,9 @@
     justify-content: center;
     padding: 0 25px;
     position: relative;
+    border: 2px solid transparent;
   }
+  .display.playing { border-color: var(--accent); }
   .display-label { font-size: 10px; color: #666; font-weight: 600; margin-bottom: -5px; }
   .display-number { 
     font-family: 'JetBrains Mono', monospace; 
@@ -57,6 +60,7 @@
     line-height: 1;
   }
 
+  /* 历史记录 */
   .history-container { padding: 8px 16px; display: flex; align-items: center; gap: 10px; }
   .history-label { font-size: 10px; color: #444; width: 50px; font-weight: 900; line-height: 1; }
   .history-bar { flex: 1; display: flex; gap: 8px; overflow-x: auto; }
@@ -72,16 +76,15 @@
     flex-shrink: 0;
     border: 1px solid #222;
   }
-
   .history-chip:active, .history-chip.playing {
     background: #ffffff !important;
     color: #000000 !important;
     transform: scale(0.9);
   }
 
+  /* 键盘区 */
   .keypad-area { flex: 1; display: flex; flex-direction: column; padding: 10px 16px 16px; gap: 10px; padding-bottom: env(safe-area-inset-bottom); }
   .key-row { display: flex; gap: 10px; flex: 1; }
-  
   .key {
     flex: 1;
     background: var(--key);
@@ -91,9 +94,11 @@
     font-size: 32px;
     color: #fff;
     border: none;
+    transition: all 0.1s ease;
   }
 
-  .key:active {
+  /* 物理键盘按下的视觉回馈效果 */
+  .key:active, .key.active-feedback {
     background: #ffffff !important; 
     color: #000000 !important;      
     transform: scale(0.95) !important;         
@@ -105,36 +110,25 @@
   .key.clear { color: #555; font-size: 16px; }
   .key.backspace { color: var(--danger); }
 
+  /* 设置面板 */
   .settings-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; z-index: 100; padding: 40px 20px; }
   .settings-overlay.show { display: block; }
   .settings-card { background: #111; border-radius: 25px; padding: 30px; border: 1px solid #222; max-width: 500px; margin: 0 auto; }
   .setting-item { margin-bottom: 20px; }
   .setting-item label { display: block; font-size: 11px; color: #555; margin-bottom: 8px; font-weight: 900; }
   select, input[type="range"] { width: 100%; padding: 12px; background: #000; color: #fff; border: 1px solid #333; border-radius: 10px; font-size: 16px; }
-  
-  .test-btn {
-    margin-top: 10px;
-    width: 100%;
-    padding: 12px;
-    background: #222;
-    color: #fff;
-    border: 1px solid #444;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 600;
-  }
+  .test-btn { margin-top: 10px; width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #444; border-radius: 10px; font-size: 13px; font-weight: 600; }
 </style>
 </head>
-
 <body ontouchstart="">
 
 <div class="header">
-  <h1>ORDER TERMINAL PRO V3.6</h1>
+  <h1>ORDER TERMINAL V3.6.3</h1>
   <button id="settingsBtn">SETTINGS</button>
 </div>
 
 <div class="display-area">
-  <div class="display">
+  <div class="display" id="mainDisplay">
     <div class="display-label">READY TO SERVE</div>
     <div class="display-number" id="displayNum">—</div>
   </div>
@@ -172,12 +166,13 @@
   </div>
 </div>
 
+<!-- 设置弹出层 -->
 <div class="settings-overlay" id="settingsOverlay">
   <div class="settings-card">
     <div class="setting-item">
       <label>Voice Engine</label>
       <select id="voiceSelect"></select>
-      <button class="test-btn" onclick="testVoice()">🔊 TEST VOICE</button>
+      <button class="test-btn" onclick="testVoice()">🔊 TEST VOICE & DING</button>
     </div>
     <div class="setting-item">
       <label>Repeat: <span id="repeatVal">2</span> Times</label>
@@ -194,8 +189,38 @@
 <script>
   let currentVal = '';
   let history = [];
+  let audioCtx = null;
 
-  // 加载记忆设置
+  // 100% 复制外甥原版的“清脆叮声”算法[span_1](start_span)[span_1](end_span)
+  function playOriginalDing() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    
+    const now = audioCtx.currentTime;
+    const dur = 0.55;
+
+    // 主音
+    const osc1 = audioCtx.createOscillator();
+    const g1 = audioCtx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.value = 830;
+    g1.gain.setValueAtTime(0.35, now);
+    g1.gain.exponentialRampToValueAtTime(0.001, now + dur);
+    osc1.connect(g1).connect(audioCtx.destination);
+
+    // 高频谐音（增加清脆感）
+    const osc2 = audioCtx.createOscillator();
+    const g2 = audioCtx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.value = 1245;
+    g2.gain.setValueAtTime(0.2, now);
+    g2.gain.exponentialRampToValueAtTime(0.001, now + dur * 0.7);
+    osc2.connect(g2).connect(audioCtx.destination);
+
+    osc1.start(now); osc2.start(now);
+    osc1.stop(now + dur); osc2.stop(now + dur);
+  }
+
   function loadSettings() {
     const savedRepeat = localStorage.getItem('repeat');
     const savedSpeed = localStorage.getItem('speed');
@@ -220,14 +245,12 @@
     const voices = window.speechSynthesis.getVoices();
     const select = document.getElementById('voiceSelect');
     if(!voices.length) return;
-    
     const savedVoice = localStorage.getItem('voiceName');
     select.innerHTML = '';
-    
     voices.forEach((v) => {
       const opt = document.createElement('option');
       opt.value = v.name;
-      opt.textContent = v.name;
+      opt.textContent = `${v.name} (${v.lang})`;
       if (v.name === savedVoice || v.name.includes('Samantha')) opt.selected = true;
       select.appendChild(opt);
     });
@@ -249,13 +272,15 @@
   }
 
   function testVoice() {
-    window.speechSynthesis.cancel();
-    const voiceName = document.getElementById('voiceSelect').value;
-    const speed = document.getElementById('speedRange').value;
-    const utter = new SpeechSynthesisUtterance("Testing voice setting.");
-    utter.voice = window.speechSynthesis.getVoices().find(v => v.name === voiceName);
-    utter.rate = speed;
-    window.speechSynthesis.speak(utter);
+    playOriginalDing();
+    setTimeout(() => {
+      const voiceName = document.getElementById('voiceSelect').value;
+      const speed = document.getElementById('speedRange').value;
+      const utter = new SpeechSynthesisUtterance("Order number 42");
+      utter.voice = window.speechSynthesis.getVoices().find(v => v.name === voiceName);
+      utter.rate = speed;
+      window.speechSynthesis.speak(utter);
+    }, 600);
   }
 
   function announce(fromHistoryValue = null, chipElement = null) {
@@ -268,12 +293,19 @@
     const repeatTimes = parseInt(document.getElementById('repeatRange').value);
     const speed = document.getElementById('speedRange').value;
     const voiceName = document.getElementById('voiceSelect').value;
+    const mainDisplay = document.getElementById('mainDisplay');
     let count = 0;
 
     if (fromHistoryValue) { currentVal = fromHistoryValue; updateDisplay(); }
-    targetBtn.classList.add('playing');
     
-    function speakLoop() {
+    targetBtn.classList.add('playing');
+    mainDisplay.classList.add('playing');
+
+    // 叫号逻辑：先播叮，再叫号
+    async function performCycle() {
+      playOriginalDing();
+      await new Promise(r => setTimeout(r, 650)); // 等待叮声结束
+
       const utter = new SpeechSynthesisUtterance(`Order number ${numToSay}`);
       utter.voice = window.speechSynthesis.getVoices().find(v => v.name === voiceName);
       utter.rate = speed;
@@ -281,9 +313,10 @@
       utter.onend = () => {
         count++;
         if (count < repeatTimes) {
-          setTimeout(speakLoop, 300); 
+          setTimeout(performCycle, 400); 
         } else {
           targetBtn.classList.remove('playing');
+          mainDisplay.classList.remove('playing');
           if (fromHistoryValue) {
             currentVal = originalVal;
           } else {
@@ -300,7 +333,8 @@
       };
       window.speechSynthesis.speak(utter);
     }
-    speakLoop();
+    
+    performCycle();
   }
 
   function renderHistory() {
@@ -320,10 +354,35 @@
   document.getElementById('speedRange').oninput = (e) => { document.getElementById('speedVal').textContent = e.target.value; };
   document.getElementById('repeatRange').oninput = (e) => { document.getElementById('repeatVal').textContent = e.target.value; };
 
-  // 尝试保持 iPad 屏幕常亮
+  // 防止 iPad 锁屏
   if ('wakeLock' in navigator) {
     navigator.wakeLock.request('screen').catch(() => {});
   }
+
+  /* --- 键盘监听：物理按键触发屏幕动画 --- */
+  document.addEventListener('keydown', (e) => {
+    const k = e.key;
+    let targetBtn = null;
+    if (/[0-9]/.test(k)) {
+      const keys = document.querySelectorAll('.key');
+      targetBtn = Array.from(keys).find(el => el.textContent === k);
+    } else if (k === 'Enter') {
+      e.preventDefault();
+      targetBtn = document.getElementById('goBtn');
+    } else if (k === '+') {
+      e.preventDefault();
+      targetBtn = document.querySelector('.key.next');
+    } else if (k === 'Backspace') {
+      e.preventDefault();
+      targetBtn = document.querySelector('.key.clear');
+    }
+
+    if (targetBtn) {
+      targetBtn.classList.add('active-feedback');
+      setTimeout(() => targetBtn.classList.remove('active-feedback'), 100);
+      targetBtn.click();
+    }
+  });
 </script>
 </body>
 </html>
