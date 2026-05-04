@@ -6,7 +6,7 @@
 <!-- 开启 iOS 全屏 App 模式 -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Order Terminal Pro</title>
+<title>Order Terminal Pro V3.6</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -14,7 +14,7 @@
     --card: #111111;
     --key: #222222;
     --accent: #FF9F0A; 
-    --history: #00E5FF; 
+    --history: #00E5FF; /* 清爽青绿色 */
     --text: #ffffff;
     --danger: #FF453A; 
     --next: #333333;
@@ -30,15 +30,13 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    padding-top: env(safe-area-inset-top); /* 适配 iPhone 刘海 */
+    padding-top: env(safe-area-inset-top);
   }
 
-  /* 顶部紧凑区域 */
   .header { padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; }
   .header h1 { font-size: 12px; color: #444; letter-spacing: 2px; }
   #settingsBtn { background: none; border: 1px solid #333; color: #888; padding: 4px 10px; border-radius: 6px; font-size: 14px; }
 
-  /* 显示区 */
   .display-area { padding: 5px 16px; }
   .display {
     background: var(--card);
@@ -59,7 +57,6 @@
     line-height: 1;
   }
 
-  /* 历史记录 */
   .history-container { padding: 8px 16px; display: flex; align-items: center; gap: 10px; }
   .history-label { font-size: 10px; color: #444; width: 50px; font-weight: 900; line-height: 1; }
   .history-bar { flex: 1; display: flex; gap: 8px; overflow-x: auto; }
@@ -82,7 +79,6 @@
     transform: scale(0.9);
   }
 
-  /* 按键区 */
   .keypad-area { flex: 1; display: flex; flex-direction: column; padding: 10px 16px 16px; gap: 10px; padding-bottom: env(safe-area-inset-bottom); }
   .key-row { display: flex; gap: 10px; flex: 1; }
   
@@ -104,25 +100,36 @@
   }
 
   .key.go { flex: 2; background: var(--accent); color: #000; font-size: 20px; font-weight: 900; border-radius: 20px; }
-  .key.go:active, .key.go.playing { background: #ffffff !important; color: #000000 !important; transform: scale(0.95); }
+  .key.go.playing { background: #ffffff !important; color: #000000 !important; }
   .key.next { flex: 1; background: var(--next); color: #fff; font-size: 20px; font-weight: 900; border-radius: 20px; }
   .key.clear { color: #555; font-size: 16px; }
   .key.backspace { color: var(--danger); }
 
-  /* 设置面板 */
   .settings-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; z-index: 100; padding: 40px 20px; }
   .settings-overlay.show { display: block; }
-  .settings-card { background: #111; border-radius: 25px; padding: 30px; border: 1px solid #222; }
+  .settings-card { background: #111; border-radius: 25px; padding: 30px; border: 1px solid #222; max-width: 500px; margin: 0 auto; }
   .setting-item { margin-bottom: 20px; }
   .setting-item label { display: block; font-size: 11px; color: #555; margin-bottom: 8px; font-weight: 900; }
   select, input[type="range"] { width: 100%; padding: 12px; background: #000; color: #fff; border: 1px solid #333; border-radius: 10px; font-size: 16px; }
+  
+  .test-btn {
+    margin-top: 10px;
+    width: 100%;
+    padding: 12px;
+    background: #222;
+    color: #fff;
+    border: 1px solid #444;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+  }
 </style>
 </head>
 
 <body ontouchstart="">
 
 <div class="header">
-  <h1>ORDER TERMINAL PRO</h1>
+  <h1>ORDER TERMINAL PRO V3.6</h1>
   <button id="settingsBtn">SETTINGS</button>
 </div>
 
@@ -168,26 +175,27 @@
 <div class="settings-overlay" id="settingsOverlay">
   <div class="settings-card">
     <div class="setting-item">
-      <label>Voice</label>
+      <label>Voice Engine</label>
       <select id="voiceSelect"></select>
+      <button class="test-btn" onclick="testVoice()">🔊 TEST VOICE</button>
     </div>
     <div class="setting-item">
-      <label>Repeat: <span id="repeatVal">2</span>x</label>
+      <label>Repeat: <span id="repeatVal">2</span> Times</label>
       <input type="range" id="repeatRange" min="1" max="5" value="2">
     </div>
     <div class="setting-item">
       <label>Speed: <span id="speedVal">1.0</span>x</label>
       <input type="range" id="speedRange" min="0.5" max="1.5" step="0.1" value="1.0">
     </div>
-    <button onclick="saveAndClose()" style="width:100%; padding:18px; background:var(--accent); border:none; font-weight:900; border-radius:15px; color:#000;">DONE</button>
+    <button onclick="saveAndClose()" style="width:100%; padding:18px; background:var(--accent); border:none; font-weight:900; border-radius:15px; color:#000; font-size:18px;">DONE</button>
   </div>
 </div>
 
 <script>
   let currentVal = '';
   let history = [];
-  
-  // 核心：加载持久化设置
+
+  // 加载记忆设置
   function loadSettings() {
     const savedRepeat = localStorage.getItem('repeat');
     const savedSpeed = localStorage.getItem('speed');
@@ -212,10 +220,11 @@
     const voices = window.speechSynthesis.getVoices();
     const select = document.getElementById('voiceSelect');
     if(!voices.length) return;
-    select.innerHTML = '';
-    const savedVoice = localStorage.getItem('voiceName');
     
-    voices.forEach((v, i) => {
+    const savedVoice = localStorage.getItem('voiceName');
+    select.innerHTML = '';
+    
+    voices.forEach((v) => {
       const opt = document.createElement('option');
       opt.value = v.name;
       opt.textContent = v.name;
@@ -237,6 +246,16 @@
     let val = parseInt(currentVal, 10) || 0;
     currentVal = String(val + 1 > 999 ? 1 : val + 1);
     updateDisplay();
+  }
+
+  function testVoice() {
+    window.speechSynthesis.cancel();
+    const voiceName = document.getElementById('voiceSelect').value;
+    const speed = document.getElementById('speedRange').value;
+    const utter = new SpeechSynthesisUtterance("Testing voice setting.");
+    utter.voice = window.speechSynthesis.getVoices().find(v => v.name === voiceName);
+    utter.rate = speed;
+    window.speechSynthesis.speak(utter);
   }
 
   function announce(fromHistoryValue = null, chipElement = null) {
@@ -301,7 +320,7 @@
   document.getElementById('speedRange').oninput = (e) => { document.getElementById('speedVal').textContent = e.target.value; };
   document.getElementById('repeatRange').oninput = (e) => { document.getElementById('repeatVal').textContent = e.target.value; };
 
-  // 尝试开启屏幕常亮
+  // 尝试保持 iPad 屏幕常亮
   if ('wakeLock' in navigator) {
     navigator.wakeLock.request('screen').catch(() => {});
   }
