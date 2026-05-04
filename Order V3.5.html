@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<!-- 开启 iOS 全屏 App 模式 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Order Terminal Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000000;
+    --card: #111111;
+    --key: #222222;
+    --accent: #FF9F0A; 
+    --history: #00E5FF; 
+    --text: #ffffff;
+    --danger: #FF453A; 
+    --next: #333333;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding-top: env(safe-area-inset-top); /* 适配 iPhone 刘海 */
+  }
+
+  /* 顶部紧凑区域 */
+  .header { padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; }
+  .header h1 { font-size: 12px; color: #444; letter-spacing: 2px; }
+  #settingsBtn { background: none; border: 1px solid #333; color: #888; padding: 4px 10px; border-radius: 6px; font-size: 14px; }
+
+  /* 显示区 */
+  .display-area { padding: 5px 16px; }
+  .display {
+    background: var(--card);
+    border-radius: 20px;
+    height: 110px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 25px;
+    position: relative;
+  }
+  .display-label { font-size: 10px; color: #666; font-weight: 600; margin-bottom: -5px; }
+  .display-number { 
+    font-family: 'JetBrains Mono', monospace; 
+    font-size: 100px; 
+    color: var(--accent);
+    text-align: right;
+    line-height: 1;
+  }
+
+  /* 历史记录 */
+  .history-container { padding: 8px 16px; display: flex; align-items: center; gap: 10px; }
+  .history-label { font-size: 10px; color: #444; width: 50px; font-weight: 900; line-height: 1; }
+  .history-bar { flex: 1; display: flex; gap: 8px; overflow-x: auto; }
+  .history-bar::-webkit-scrollbar { display: none; }
+  
+  .history-chip {
+    background: #1a1a1a;
+    padding: 6px 12px;
+    border-radius: 10px;
+    color: var(--history);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    flex-shrink: 0;
+    border: 1px solid #222;
+  }
+
+  .history-chip:active, .history-chip.playing {
+    background: #ffffff !important;
+    color: #000000 !important;
+    transform: scale(0.9);
+  }
+
+  /* 按键区 */
+  .keypad-area { flex: 1; display: flex; flex-direction: column; padding: 10px 16px 16px; gap: 10px; padding-bottom: env(safe-area-inset-bottom); }
+  .key-row { display: flex; gap: 10px; flex: 1; }
+  
+  .key {
+    flex: 1;
+    background: var(--key);
+    border-radius: 15px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 32px;
+    color: #fff;
+    border: none;
+  }
+
+  .key:active {
+    background: #ffffff !important; 
+    color: #000000 !important;      
+    transform: scale(0.95) !important;         
+  }
+
+  .key.go { flex: 2; background: var(--accent); color: #000; font-size: 20px; font-weight: 900; border-radius: 20px; }
+  .key.go:active, .key.go.playing { background: #ffffff !important; color: #000000 !important; transform: scale(0.95); }
+  .key.next { flex: 1; background: var(--next); color: #fff; font-size: 20px; font-weight: 900; border-radius: 20px; }
+  .key.clear { color: #555; font-size: 16px; }
+  .key.backspace { color: var(--danger); }
+
+  /* 设置面板 */
+  .settings-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; z-index: 100; padding: 40px 20px; }
+  .settings-overlay.show { display: block; }
+  .settings-card { background: #111; border-radius: 25px; padding: 30px; border: 1px solid #222; }
+  .setting-item { margin-bottom: 20px; }
+  .setting-item label { display: block; font-size: 11px; color: #555; margin-bottom: 8px; font-weight: 900; }
+  select, input[type="range"] { width: 100%; padding: 12px; background: #000; color: #fff; border: 1px solid #333; border-radius: 10px; font-size: 16px; }
+</style>
+</head>
+
+<body ontouchstart="">
+
+<div class="header">
+  <h1>ORDER TERMINAL PRO</h1>
+  <button id="settingsBtn">SETTINGS</button>
+</div>
+
+<div class="display-area">
+  <div class="display">
+    <div class="display-label">READY TO SERVE</div>
+    <div class="display-number" id="displayNum">—</div>
+  </div>
+</div>
+
+<div class="history-container">
+  <div class="history-label">RECENT<br>LOG</div>
+  <div class="history-bar" id="historyBar"></div>
+</div>
+
+<div class="keypad-area">
+  <div class="key-row">
+    <div class="key" onclick="press('1')">1</div>
+    <div class="key" onclick="press('2')">2</div>
+    <div class="key" onclick="press('3')">3</div>
+  </div>
+  <div class="key-row">
+    <div class="key" onclick="press('4')">4</div>
+    <div class="key" onclick="press('5')">5</div>
+    <div class="key" onclick="press('6')">6</div>
+  </div>
+  <div class="key-row">
+    <div class="key" onclick="press('7')">7</div>
+    <div class="key" onclick="press('8')">8</div>
+    <div class="key" onclick="press('9')">9</div>
+  </div>
+  <div class="key-row">
+    <div class="key clear" onclick="clearAll()">CLR</div>
+    <div class="key" onclick="press('0')">0</div>
+    <div class="key backspace" onclick="backspace()">⌫</div>
+  </div>
+  <div class="key-row">
+    <div class="key go" id="goBtn" onclick="announce()">ANNOUNCE</div>
+    <div class="key next" onclick="skipToNext()">NEXT</div>
+  </div>
+</div>
+
+<div class="settings-overlay" id="settingsOverlay">
+  <div class="settings-card">
+    <div class="setting-item">
+      <label>Voice</label>
+      <select id="voiceSelect"></select>
+    </div>
+    <div class="setting-item">
+      <label>Repeat: <span id="repeatVal">2</span>x</label>
+      <input type="range" id="repeatRange" min="1" max="5" value="2">
+    </div>
+    <div class="setting-item">
+      <label>Speed: <span id="speedVal">1.0</span>x</label>
+      <input type="range" id="speedRange" min="0.5" max="1.5" step="0.1" value="1.0">
+    </div>
+    <button onclick="saveAndClose()" style="width:100%; padding:18px; background:var(--accent); border:none; font-weight:900; border-radius:15px; color:#000;">DONE</button>
+  </div>
+</div>
+
+<script>
+  let currentVal = '';
+  let history = [];
+  
+  // 核心：加载持久化设置
+  function loadSettings() {
+    const savedRepeat = localStorage.getItem('repeat');
+    const savedSpeed = localStorage.getItem('speed');
+    if(savedRepeat) {
+      document.getElementById('repeatRange').value = savedRepeat;
+      document.getElementById('repeatVal').textContent = savedRepeat;
+    }
+    if(savedSpeed) {
+      document.getElementById('speedRange').value = savedSpeed;
+      document.getElementById('speedVal').textContent = savedSpeed;
+    }
+  }
+
+  function saveAndClose() {
+    localStorage.setItem('repeat', document.getElementById('repeatRange').value);
+    localStorage.setItem('speed', document.getElementById('speedRange').value);
+    localStorage.setItem('voiceName', document.getElementById('voiceSelect').value);
+    toggleSettings();
+  }
+
+  function initVoices() {
+    const voices = window.speechSynthesis.getVoices();
+    const select = document.getElementById('voiceSelect');
+    if(!voices.length) return;
+    select.innerHTML = '';
+    const savedVoice = localStorage.getItem('voiceName');
+    
+    voices.forEach((v, i) => {
+      const opt = document.createElement('option');
+      opt.value = v.name;
+      opt.textContent = v.name;
+      if (v.name === savedVoice || v.name.includes('Samantha')) opt.selected = true;
+      select.appendChild(opt);
+    });
+  }
+
+  window.speechSynthesis.onvoiceschanged = initVoices;
+  loadSettings();
+  initVoices();
+
+  function press(num) { if (currentVal.length < 3) { currentVal += num; updateDisplay(); } }
+  function backspace() { currentVal = currentVal.slice(0, -1); updateDisplay(); }
+  function clearAll() { currentVal = ''; updateDisplay(); }
+  function updateDisplay() { document.getElementById('displayNum').textContent = currentVal || '—'; }
+
+  function skipToNext() {
+    let val = parseInt(currentVal, 10) || 0;
+    currentVal = String(val + 1 > 999 ? 1 : val + 1);
+    updateDisplay();
+  }
+
+  function announce(fromHistoryValue = null, chipElement = null) {
+    if (!currentVal && !fromHistoryValue) return;
+    if (window.speechSynthesis.speaking) return;
+
+    const originalVal = currentVal;
+    const numToSay = fromHistoryValue || currentVal;
+    const targetBtn = chipElement || document.getElementById('goBtn');
+    const repeatTimes = parseInt(document.getElementById('repeatRange').value);
+    const speed = document.getElementById('speedRange').value;
+    const voiceName = document.getElementById('voiceSelect').value;
+    let count = 0;
+
+    if (fromHistoryValue) { currentVal = fromHistoryValue; updateDisplay(); }
+    targetBtn.classList.add('playing');
+    
+    function speakLoop() {
+      const utter = new SpeechSynthesisUtterance(`Order number ${numToSay}`);
+      utter.voice = window.speechSynthesis.getVoices().find(v => v.name === voiceName);
+      utter.rate = speed;
+
+      utter.onend = () => {
+        count++;
+        if (count < repeatTimes) {
+          setTimeout(speakLoop, 300); 
+        } else {
+          targetBtn.classList.remove('playing');
+          if (fromHistoryValue) {
+            currentVal = originalVal;
+          } else {
+            let next = parseInt(numToSay, 10) + 1;
+            currentVal = String(next > 999 ? 1 : next);
+            if (!history.includes(numToSay)) {
+              history.unshift(numToSay);
+              if (history.length > 10) history.pop();
+              renderHistory();
+            }
+          }
+          updateDisplay();
+        }
+      };
+      window.speechSynthesis.speak(utter);
+    }
+    speakLoop();
+  }
+
+  function renderHistory() {
+    const bar = document.getElementById('historyBar');
+    bar.innerHTML = '';
+    history.forEach(n => {
+      const chip = document.createElement('div');
+      chip.className = 'history-chip';
+      chip.textContent = `#${n}`;
+      chip.onclick = () => announce(n, chip);
+      bar.appendChild(chip);
+    });
+  }
+
+  function toggleSettings() { document.getElementById('settingsOverlay').classList.toggle('show'); }
+  document.getElementById('settingsBtn').onclick = toggleSettings;
+  document.getElementById('speedRange').oninput = (e) => { document.getElementById('speedVal').textContent = e.target.value; };
+  document.getElementById('repeatRange').oninput = (e) => { document.getElementById('repeatVal').textContent = e.target.value; };
+
+  // 尝试开启屏幕常亮
+  if ('wakeLock' in navigator) {
+    navigator.wakeLock.request('screen').catch(() => {});
+  }
+</script>
+</body>
+</html>
