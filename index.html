@@ -13,7 +13,7 @@
     --card: #111111;
     --key: #222222;
     --accent: #FF9F0A; 
-    --history: #00E5FF; 
+    --history: #94FF00; 
     --text: #ffffff;
     --danger: #FF453A; 
     --next: #333333;
@@ -191,7 +191,7 @@
   let history = [];
   let audioCtx = null;
 
-  // 100% 复制外甥原版的“清脆叮声”算法[span_1](start_span)[span_1](end_span)
+  // 100%“清脆叮声”算法[span_1](start_span)[span_1](end_span)
   function playOriginalDing() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -367,6 +367,7 @@
       const keys = document.querySelectorAll('.key');
       targetBtn = Array.from(keys).find(el => el.textContent === k);
     } else if (k === 'Enter') {
+      if (e.repeat) return;
       e.preventDefault();
       targetBtn = document.getElementById('goBtn');
     } else if (k === '+') {
