@@ -152,7 +152,6 @@
     <div class="key" onclick="press('9')">9</div>
   </div>
   <div class="key-row">
-    <!-- CLR键现在具备“停止播报”和“清除数字”双重功能 -->
     <div class="key clear" onclick="clearAll()">CLR</div>
     <div class="key" onclick="press('0')">0</div>
     <div class="key prev" onclick="skipToPrev()">PREV</div>
@@ -187,7 +186,7 @@
   let history = [];
   let audioCtx = null;
   let wakeLock = null;
-  let isAborted = false; // 用于控制打断状态
+  let isAborted = false;
 
   const blankVideoSrc = "data:video/mp4;base64,AAAAHGZ0eXBtcDQyAAAAAG1wNDJpc29tYXZjMQAAAzphdmNjMQAAAAh0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAMWhhbmRsAAAAAHZpZGVvAAAAAAAAAAAAAAAAbWluZgAAABR2bWhkAAAAAAABAAAAAAAAAAAAAAAkZGluZgAAABxkcmVmAAAAAAAAAAEAAAAMdXJsIAAAAAEAAAEcbW9vdgAAAGxtdmhkAAAAAAAAAAAAAAAAAAAD6AAABDcAAQAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAACdHJha3MAAABydGtoZAAAAAMAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAD";
 
@@ -259,18 +258,16 @@
 
   function press(num) { startAntiSleep(); if (currentVal.length < 3) { currentVal += num; updateDisplay(); } }
   
-  // 核心熔断功能
   function clearAll() {
     startAntiSleep();
     if (window.speechSynthesis.speaking) {
-      isAborted = true; // 标记为手动打断
+      isAborted = true; 
       window.speechSynthesis.cancel();
-      // 立即恢复UI状态
       document.getElementById('mainDisplay').classList.remove('playing');
       document.getElementById('goBtn').classList.remove('playing');
       const chips = document.querySelectorAll('.history-chip');
       chips.forEach(c => c.classList.remove('playing'));
-      return; // 此时号码保留，不清除
+      return; 
     }
     currentVal = ''; 
     updateDisplay();
@@ -307,7 +304,7 @@
     if (!currentVal && !fromHistoryValue) return;
     if (window.speechSynthesis.speaking) return;
     
-    isAborted = false; // 重置打断状态
+    isAborted = false; 
     const originalVal = currentVal;
     const numToSay = fromHistoryValue || currentVal;
     const targetBtn = chipElement || document.getElementById('goBtn');
@@ -323,7 +320,7 @@
     mainDisplay.classList.add('playing');
 
     async function performCycle() {
-      if (isAborted) return; // 如果被熔断，退出循环
+      if (isAborted) return; 
 
       playOriginalDing(); 
       await new Promise(r => setTimeout(r, 650)); 
@@ -376,6 +373,33 @@
   document.addEventListener('click', startAntiSleep, { once: true });
   document.addEventListener('visibilitychange', () => {
     if (wakeLock !== null && document.visibilityState === 'visible') requestWakeLock();
+  });
+
+  // --- 原版 3.7.1 完整恢复的键盘映射与防连发逻辑 ---
+  document.addEventListener('keydown', (e) => {
+    startAntiSleep(); // 确保实体键盘敲击也能激活防熄屏
+    const k = e.key;
+    let targetBtn = null;
+    
+    if (/[0-9]/.test(k)) {
+      const keys = document.querySelectorAll('.key');
+      targetBtn = Array.from(keys).find(el => el.textContent === k);
+    } else if (k === 'Enter') {
+      if (e.repeat) return; // 核心防连发逻辑，禁止长按回车键卡死系统
+      e.preventDefault(); targetBtn = document.getElementById('goBtn');
+    } else if (k === '+') {
+      e.preventDefault(); targetBtn = document.querySelector('.key.next');
+    } else if (k === '-') {
+      e.preventDefault(); targetBtn = document.querySelector('.key.prev');
+    } else if (k === 'Backspace') {
+      e.preventDefault(); targetBtn = document.querySelector('.key.clear');
+    }
+    
+    if (targetBtn) {
+      targetBtn.classList.add('active-feedback');
+      setTimeout(() => targetBtn.classList.remove('active-feedback'), 100);
+      targetBtn.click();
+    }
   });
 </script>
 </body>
