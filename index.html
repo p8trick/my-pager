@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Order Terminal Pro V3.7.1</title>
+<title>Order Terminal V3.7.8</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -45,9 +45,23 @@
     justify-content: center;
     padding: 0 25px;
     position: relative;
-    border: 2px solid transparent;
+    border: 1px solid rgba(255, 159, 10, 0.1);
+    box-shadow: 0 0 15px rgba(255, 159, 10, 0.05);
+    animation: breathe 4s ease-in-out infinite;
+    transition: all 0.1s ease;
   }
-  .display.playing { border-color: var(--accent); }
+
+  @keyframes breathe {
+    0%, 100% { box-shadow: 0 0 5px rgba(255, 159, 10, 0.02); border-color: rgba(255, 159, 10, 0.1); }
+    50% { box-shadow: 0 0 20px rgba(255, 159, 10, 0.2); border-color: rgba(255, 159, 10, 0.4); }
+  }
+
+  .display.playing {
+    animation: none;
+    border-color: var(--history);
+    box-shadow: 0 0 30px rgba(148, 255, 0, 0.4), inset 0 0 20px rgba(148, 255, 0, 0.1);
+  }
+
   .display-label { font-size: 10px; color: #666; font-weight: 600; margin-bottom: -5px; }
   .display-number { 
     font-family: 'JetBrains Mono', monospace; 
@@ -63,45 +77,30 @@
   .history-bar::-webkit-scrollbar { display: none; }
   
   .history-chip {
-    background: #1a1a1a;
-    padding: 6px 12px;
-    border-radius: 10px;
-    color: var(--history);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 16px;
-    flex-shrink: 0;
-    border: 1px solid #222;
+    background: #1a1a1a; padding: 6px 12px; border-radius: 10px;
+    color: var(--history); font-family: 'JetBrains Mono', monospace;
+    font-size: 16px; flex-shrink: 0; border: 1px solid #222;
   }
   .history-chip:active, .history-chip.playing {
-    background: #ffffff !important;
-    color: #000000 !important;
-    transform: scale(0.9);
+    background: #ffffff !important; color: #000000 !important; transform: scale(0.9);
   }
 
   .keypad-area { flex: 1; display: flex; flex-direction: column; padding: 10px 16px 16px; gap: 10px; padding-bottom: env(safe-area-inset-bottom); }
   .key-row { display: flex; gap: 10px; flex: 1; }
   .key {
-    flex: 1;
-    background: var(--key);
-    border-radius: 15px;
+    flex: 1; background: var(--key); border-radius: 15px;
     display: flex; align-items: center; justify-content: center;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 32px;
-    color: #fff;
-    border: none;
+    font-family: 'JetBrains Mono', monospace; font-size: 32px; color: #fff; border: none;
     transition: all 0.1s ease;
   }
 
   .key:active, .key.active-feedback {
-    background: #ffffff !important; 
-    color: #000000 !important;      
-    transform: scale(0.95) !important;         
+    background: #ffffff !important; color: #000000 !important; transform: scale(0.95) !important;         
   }
 
   .key.go { flex: 2; background: var(--accent); color: #000; font-size: 20px; font-weight: 900; border-radius: 20px; }
-  .key.go.playing { background: #ffffff !important; color: #000000 !important; }
+  .key.go.playing { background: #ffffff !important; color: #000000 !important; transform: scale(0.98); }
   
-  /* 优化的控制键颜色 */
   .key.next { flex: 1; background: var(--next); color: #FFD60A; font-size: 20px; font-weight: 900; border-radius: 20px; }
   .key.clear { color: var(--danger); font-size: 20px; font-weight: 900; }
   .key.prev { color: #FFD60A; font-size: 20px; font-weight: 900; }
@@ -117,8 +116,10 @@
 </head>
 <body ontouchstart="">
 
+<div id="noSleepVideoContainer" style="position:absolute; width:1px; height:1px; opacity:0.01; pointer-events:none;"></div>
+
 <div class="header">
-  <h1>ORDER TERMINAL V3.7.1</h1>
+  <h1>ORDER TERMINAL V3.7.8</h1>
   <button id="settingsBtn">SETTINGS</button>
 </div>
 
@@ -151,6 +152,7 @@
     <div class="key" onclick="press('9')">9</div>
   </div>
   <div class="key-row">
+    <!-- CLR键现在具备“停止播报”和“清除数字”双重功能 -->
     <div class="key clear" onclick="clearAll()">CLR</div>
     <div class="key" onclick="press('0')">0</div>
     <div class="key prev" onclick="skipToPrev()">PREV</div>
@@ -184,19 +186,38 @@
   let currentVal = '';
   let history = [];
   let audioCtx = null;
+  let wakeLock = null;
+  let isAborted = false; // 用于控制打断状态
+
+  const blankVideoSrc = "data:video/mp4;base64,AAAAHGZ0eXBtcDQyAAAAAG1wNDJpc29tYXZjMQAAAzphdmNjMQAAAAh0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAMWhhbmRsAAAAAHZpZGVvAAAAAAAAAAAAAAAAbWluZgAAABR2bWhkAAAAAAABAAAAAAAAAAAAAAAkZGluZgAAABxkcmVmAAAAAAAAAAEAAAAMdXJsIAAAAAEAAAEcbW9vdgAAAGxtdmhkAAAAAAAAAAAAAAAAAAAD6AAABDcAAQAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAACdHJha3MAAABydGtoZAAAAAMAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAD";
+
+  async function requestWakeLock() {
+    if ('wakeLock' in navigator) {
+      try { wakeLock = await navigator.wakeLock.request('screen'); } 
+      catch (err) { console.log(err); }
+    }
+  }
+
+  function startAntiSleep() {
+    requestWakeLock();
+    const container = document.getElementById('noSleepVideoContainer');
+    if (!container.querySelector('video')) {
+      const v = document.createElement('video');
+      v.src = blankVideoSrc; v.muted = true; v.loop = true; v.playsInline = true;
+      v.play().catch(()=>{}); container.appendChild(v);
+    }
+  }
 
   function playOriginalDing() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
     const now = audioCtx.currentTime;
     const dur = 0.55;
-    const osc1 = audioCtx.createOscillator();
-    const g1 = audioCtx.createGain();
+    const osc1 = audioCtx.createOscillator(); const g1 = audioCtx.createGain();
     osc1.type = 'sine'; osc1.frequency.value = 830;
     g1.gain.setValueAtTime(0.35, now); g1.gain.exponentialRampToValueAtTime(0.001, now + dur);
     osc1.connect(g1).connect(audioCtx.destination);
-    const osc2 = audioCtx.createOscillator();
-    const g2 = audioCtx.createGain();
+    const osc2 = audioCtx.createOscillator(); const g2 = audioCtx.createGain();
     osc2.type = 'sine'; osc2.frequency.value = 1245;
     g2.gain.setValueAtTime(0.2, now); g2.gain.exponentialRampToValueAtTime(0.001, now + dur * 0.7);
     osc2.connect(g2).connect(audioCtx.destination);
@@ -204,10 +225,12 @@
   }
 
   function loadSettings() {
-    const savedRepeat = localStorage.getItem('repeat');
-    const savedSpeed = localStorage.getItem('speed');
-    if(savedRepeat) { document.getElementById('repeatRange').value = savedRepeat; document.getElementById('repeatVal').textContent = savedRepeat; }
-    if(savedSpeed) { document.getElementById('speedRange').value = savedSpeed; document.getElementById('speedVal').textContent = savedSpeed; }
+    const savedRepeat = localStorage.getItem('repeat') || 2;
+    const savedSpeed = localStorage.getItem('speed') || 1.0;
+    document.getElementById('repeatRange').value = savedRepeat;
+    document.getElementById('repeatVal').textContent = savedRepeat;
+    document.getElementById('speedRange').value = savedSpeed;
+    document.getElementById('speedVal').textContent = savedSpeed;
   }
 
   function saveAndClose() {
@@ -232,11 +255,27 @@
   }
 
   window.speechSynthesis.onvoiceschanged = initVoices;
-  loadSettings();
-  initVoices();
+  loadSettings(); initVoices();
 
-  function press(num) { if (currentVal.length < 3) { currentVal += num; updateDisplay(); } }
-  function clearAll() { currentVal = ''; updateDisplay(); }
+  function press(num) { startAntiSleep(); if (currentVal.length < 3) { currentVal += num; updateDisplay(); } }
+  
+  // 核心熔断功能
+  function clearAll() {
+    startAntiSleep();
+    if (window.speechSynthesis.speaking) {
+      isAborted = true; // 标记为手动打断
+      window.speechSynthesis.cancel();
+      // 立即恢复UI状态
+      document.getElementById('mainDisplay').classList.remove('playing');
+      document.getElementById('goBtn').classList.remove('playing');
+      const chips = document.querySelectorAll('.history-chip');
+      chips.forEach(c => c.classList.remove('playing'));
+      return; // 此时号码保留，不清除
+    }
+    currentVal = ''; 
+    updateDisplay();
+  }
+
   function updateDisplay() { document.getElementById('displayNum').textContent = currentVal || '—'; }
 
   function skipToNext() {
@@ -252,7 +291,7 @@
   }
 
   function testVoice() {
-    playOriginalDing();
+    startAntiSleep(); playOriginalDing();
     setTimeout(() => {
       const voiceName = document.getElementById('voiceSelect').value;
       const speed = document.getElementById('speedRange').value;
@@ -264,8 +303,11 @@
   }
 
   function announce(fromHistoryValue = null, chipElement = null) {
+    startAntiSleep();
     if (!currentVal && !fromHistoryValue) return;
     if (window.speechSynthesis.speaking) return;
+    
+    isAborted = false; // 重置打断状态
     const originalVal = currentVal;
     const numToSay = fromHistoryValue || currentVal;
     const targetBtn = chipElement || document.getElementById('goBtn');
@@ -274,23 +316,40 @@
     const voiceName = document.getElementById('voiceSelect').value;
     const mainDisplay = document.getElementById('mainDisplay');
     let count = 0;
+    
     if (fromHistoryValue) { currentVal = fromHistoryValue; updateDisplay(); }
-    targetBtn.classList.add('playing'); mainDisplay.classList.add('playing');
+    
+    targetBtn.classList.add('playing'); 
+    mainDisplay.classList.add('playing');
+
     async function performCycle() {
-      playOriginalDing(); await new Promise(r => setTimeout(r, 650)); 
+      if (isAborted) return; // 如果被熔断，退出循环
+
+      playOriginalDing(); 
+      await new Promise(r => setTimeout(r, 650)); 
+      
+      if (isAborted) return;
+
       const utter = new SpeechSynthesisUtterance(`Order number ${numToSay}`);
       utter.voice = window.speechSynthesis.getVoices().find(v => v.name === voiceName);
       utter.rate = speed;
       utter.onend = () => {
+        if (isAborted) return;
         count++;
         if (count < repeatTimes) { setTimeout(performCycle, 400); } 
         else {
-          targetBtn.classList.remove('playing'); mainDisplay.classList.remove('playing');
-          if (fromHistoryValue) { currentVal = originalVal; } 
-          else {
+          targetBtn.classList.remove('playing'); 
+          mainDisplay.classList.remove('playing');
+          if (fromHistoryValue) { 
+            currentVal = originalVal; 
+          } else {
             let next = parseInt(numToSay, 10) + 1;
             currentVal = String(next > 999 ? 1 : next);
-            if (!history.includes(numToSay)) { history.unshift(numToSay); if (history.length > 10) history.pop(); renderHistory(); }
+            if (!history.includes(numToSay)) { 
+              history.unshift(numToSay); 
+              if (history.length > 10) history.pop(); 
+              renderHistory(); 
+            }
           }
           updateDisplay();
         }
@@ -314,29 +373,9 @@
   document.getElementById('speedRange').oninput = (e) => { document.getElementById('speedVal').textContent = e.target.value; };
   document.getElementById('repeatRange').oninput = (e) => { document.getElementById('repeatVal').textContent = e.target.value; };
 
-  if ('wakeLock' in navigator) { navigator.wakeLock.request('screen').catch(() => {}); }
-
-  document.addEventListener('keydown', (e) => {
-    const k = e.key;
-    let targetBtn = null;
-    if (/[0-9]/.test(k)) {
-      const keys = document.querySelectorAll('.key');
-      targetBtn = Array.from(keys).find(el => el.textContent === k);
-    } else if (k === 'Enter') {
-      if (e.repeat) return;
-      e.preventDefault(); targetBtn = document.getElementById('goBtn');
-    } else if (k === '+') {
-      e.preventDefault(); targetBtn = document.querySelector('.key.next');
-    } else if (k === '-') {
-      e.preventDefault(); targetBtn = document.querySelector('.key.prev');
-    } else if (k === 'Backspace') {
-      e.preventDefault(); targetBtn = document.querySelector('.key.clear');
-    }
-    if (targetBtn) {
-      targetBtn.classList.add('active-feedback');
-      setTimeout(() => targetBtn.classList.remove('active-feedback'), 100);
-      targetBtn.click();
-    }
+  document.addEventListener('click', startAntiSleep, { once: true });
+  document.addEventListener('visibilitychange', () => {
+    if (wakeLock !== null && document.visibilityState === 'visible') requestWakeLock();
   });
 </script>
 </body>
