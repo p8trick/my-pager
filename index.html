@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Order Terminal V3.7.8</title>
+<title>Order Terminal V3.8</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -51,6 +51,30 @@
     transition: all 0.1s ease;
   }
 
+  /* 左侧统计监控区样式 */
+  .stats-box {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    border-left: 1px solid #333;
+    padding-left: 12px;
+    pointer-events: none;
+  }
+  .last-label { font-size: 9px; color: #555; font-weight: 900; letter-spacing: 1px; }
+  .last-num-display { font-family: 'JetBrains Mono', monospace; font-size: 16px; color: #888; margin-bottom: 2px; }
+  .time-ago-display { 
+    font-family: 'JetBrains Mono', monospace; 
+    font-size: 22px; 
+    color: var(--history); 
+    font-weight: 700;
+    line-height: 1;
+    transition: color 0.5s ease;
+  }
+
   @keyframes breathe {
     0%, 100% { box-shadow: 0 0 5px rgba(255, 159, 10, 0.02); border-color: rgba(255, 159, 10, 0.1); }
     50% { box-shadow: 0 0 20px rgba(255, 159, 10, 0.2); border-color: rgba(255, 159, 10, 0.4); }
@@ -62,10 +86,10 @@
     box-shadow: 0 0 30px rgba(148, 255, 0, 0.4), inset 0 0 20px rgba(148, 255, 0, 0.1);
   }
 
-  .display-label { font-size: 10px; color: #666; font-weight: 600; margin-bottom: -5px; }
+  .display-label { font-size: 10px; color: #666; font-weight: 600; margin-bottom: -15px; }
   .display-number { 
     font-family: 'JetBrains Mono', monospace; 
-    font-size: 100px; 
+    font-size: 110px; 
     color: var(--accent);
     text-align: right;
     line-height: 1;
@@ -119,12 +143,17 @@
 <div id="noSleepVideoContainer" style="position:absolute; width:1px; height:1px; opacity:0.01; pointer-events:none;"></div>
 
 <div class="header">
-  <h1>ORDER TERMINAL V3.7.8</h1>
+  <h1>ORDER TERMINAL V3.7.17</h1>
   <button id="settingsBtn">SETTINGS</button>
 </div>
 
 <div class="display-area">
   <div class="display" id="mainDisplay">
+    <div class="stats-box" id="statsBox">
+        <div class="last-label">LAST</div>
+        <div class="last-num-display" id="lastNumLabel">#--</div>
+        <div class="time-ago-display" id="timeDisplay">0m</div>
+    </div>
     <div class="display-label">READY TO SERVE</div>
     <div class="display-number" id="displayNum">—</div>
   </div>
@@ -187,6 +216,8 @@
   let audioCtx = null;
   let wakeLock = null;
   let isAborted = false;
+  let lastCallTimestamp = null;
+  let lastCallNumber = '--';
 
   const blankVideoSrc = "data:video/mp4;base64,AAAAHGZ0eXBtcDQyAAAAAG1wNDJpc29tYXZjMQAAAzphdmNjMQAAAAh0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAMWhhbmRsAAAAAHZpZGVvAAAAAAAAAAAAAAAAbWluZgAAABR2bWhkAAAAAAABAAAAAAAAAAAAAAAkZGluZgAAABxkcmVmAAAAAAAAAAEAAAAMdXJsIAAAAAEAAAEcbW9vdgAAAGxtdmhkAAAAAAAAAAAAAAAAAAAD6AAABDcAAQAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAACdHJha3MAAABydGtoZAAAAAMAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAD";
 
@@ -222,6 +253,29 @@
     osc2.connect(g2).connect(audioCtx.destination);
     osc1.start(now); osc2.start(now); osc1.stop(now + dur); osc2.stop(now + dur);
   }
+
+  // 强化后的每分钟更新逻辑
+  function updateTimeDisplay() {
+    if (!lastCallTimestamp) return;
+    const now = Date.now();
+    const diffMinutes = Math.floor((now - lastCallTimestamp) / 60000);
+    const displayElement = document.getElementById('timeDisplay');
+    
+    if (diffMinutes >= 30) {
+      displayElement.textContent = "30+m";
+      displayElement.style.color = "#444";
+    } else if (diffMinutes >= 10) {
+      displayElement.textContent = diffMinutes + "m";
+      displayElement.style.color = "var(--danger)"; 
+    } else if (diffMinutes >= 5) {
+      displayElement.textContent = diffMinutes + "m";
+      displayElement.style.color = "#FFD60A"; 
+    } else {
+      displayElement.textContent = diffMinutes + "m";
+      displayElement.style.color = "var(--history)"; 
+    }
+  }
+  setInterval(updateTimeDisplay, 60000);
 
   function loadSettings() {
     const savedRepeat = localStorage.getItem('repeat') || 2;
@@ -319,6 +373,12 @@
     targetBtn.classList.add('playing'); 
     mainDisplay.classList.add('playing');
 
+    // 记录呼叫时间与号码
+    lastCallTimestamp = Date.now();
+    lastCallNumber = numToSay;
+    document.getElementById('lastNumLabel').textContent = "#" + lastCallNumber;
+    updateTimeDisplay();
+
     async function performCycle() {
       if (isAborted) return; 
 
@@ -373,33 +433,6 @@
   document.addEventListener('click', startAntiSleep, { once: true });
   document.addEventListener('visibilitychange', () => {
     if (wakeLock !== null && document.visibilityState === 'visible') requestWakeLock();
-  });
-
-  // --- 原版 3.7.1 完整恢复的键盘映射与防连发逻辑 ---
-  document.addEventListener('keydown', (e) => {
-    startAntiSleep(); // 确保实体键盘敲击也能激活防熄屏
-    const k = e.key;
-    let targetBtn = null;
-    
-    if (/[0-9]/.test(k)) {
-      const keys = document.querySelectorAll('.key');
-      targetBtn = Array.from(keys).find(el => el.textContent === k);
-    } else if (k === 'Enter') {
-      if (e.repeat) return; // 核心防连发逻辑，禁止长按回车键卡死系统
-      e.preventDefault(); targetBtn = document.getElementById('goBtn');
-    } else if (k === '+') {
-      e.preventDefault(); targetBtn = document.querySelector('.key.next');
-    } else if (k === '-') {
-      e.preventDefault(); targetBtn = document.querySelector('.key.prev');
-    } else if (k === 'Backspace') {
-      e.preventDefault(); targetBtn = document.querySelector('.key.clear');
-    }
-    
-    if (targetBtn) {
-      targetBtn.classList.add('active-feedback');
-      setTimeout(() => targetBtn.classList.remove('active-feedback'), 100);
-      targetBtn.click();
-    }
   });
 </script>
 </body>
