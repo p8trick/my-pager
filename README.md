@@ -1,34 +1,24 @@
-# 📢 Order Terminal Pro (V3.7.8)
-
-[中文说明](#chinese) | [English Description](#english)
-
----
-
+📢 Order Terminal Pro (V3.8)
+中文说明 | English Description
 <a name="chinese"></a>
-## 🇨🇳 中文说明 (Chinese)
-
-### 简介
+🇨🇳 中文说明 (Chinese)
+简介
 一款专为高频率零售环境设计的高性能网页叫号终端。通过精简的纯前端逻辑，旨在取代昂贵的工业级硬件，提供更灵活、更具容错性的操作体验。
-
-### 核心特性
-*   **双重持久化运行 (Dual Anti-Sleep)**：集成 Web Wake Lock API 与底层隐藏媒体流保活机制，防止移动端设备在长时间无人操作时自动锁屏[span_0](start_span)[span_0](end_span)。
-*   **全物理键盘映射 (Hardware Mapping)**：深度适配物理键盘，支持数字键输入、回车键播报（带防连发逻辑）、加减号步进及退格键清除。
-*   **紧急熔断制动 (Emergency Break)**：允许操作者通过物理按键或 UI 交互瞬间切断 `window.speechSynthesis` 播报队列，解决误触发痛点。
-*   **视觉反馈系统 (Visual Feedback)**：包含模拟呼吸灯动效与实时播报状态高亮反馈，确保设备运行状态一目了然。
-*   **本地化运行 (Local & Private)**：100% 纯前端运行，不依赖外部服务器，支持离线使用并利用 `localStorage` 保护配置数据。
-
-### 版本更新记录
-*   **V3.7.8 (当前版本)**：
-    *   新增 `CLR` / `Backspace` 语音熔断功能。
-    *   引入显示区域 `breathe` 呼吸灯动画。
-    *   修复并回归了 3.7.1 中的物理键盘监听与防连发逻辑。
-*   **V3.7.7**：
-    *   引入 1px 隐藏视频保活方案，解决 iOS Safari 自动休眠问题[span_1](start_span)[span_1](end_span)。
-    *   优化语音引擎预热，降低 Ding 声后的播报延迟。
-*   **V3.7.1**：
-    *   建立核心播报架构，支持自定义语速、次数及声线选择。
-    *   实现历史记录回滚：重播历史号码后自动恢复当前输入序列。
-    *   集成本地存储功能，实现用户设置持久化。
+核心特性
+• 双重持久化运行 (Dual Anti-Sleep)：集成 Web Wake Lock API 与底层隐藏媒体流保活机制，防止移动端设备在长时间无人操作时自动锁屏。
+• 全物理键盘映射 (Hardware Mapping)：深度适配物理键盘，支持数字键输入、回车键播报（带防连发逻辑）、加减号步进及退格键清除。
+• 紧急熔断制动 (Emergency Break)：允许操作者通过物理按键或 UI 交互瞬间切断 window.speechSynthesis 播报队列，解决误触发痛点。
+• 多维视觉系统 (Visual Feedback)：包含模拟呼吸灯动效与实时订单耗时色彩预警逻辑，确保运行状态一目了然。
+• 本地化运行 (Local & Private)：100% 纯前端运行，不依赖外部服务器，支持离线使用并利用 localStorage 保护配置数据。
+版本更新记录
+• V3.8 (稳定版/当前版本)：
+• 新增分段式色彩预警：根据呼叫耗时自动切换字体颜色（5min-黄 / 10min-红 / 30min-灰），强化备餐时效监控。
+• UI 像素级优化：微调显示容器高度至 110px，通过负边距补偿技术在扩大主号字号（110px）的同时，找回了被挤占的键盘操作空间。
+• 性能固化：继承并锁定了 V3.7.8 的所有核心熔断与防休眠逻辑。
+• V3.7.8：
+• 新增 CLR / Backspace 语音熔断功能。
+• 引入显示区域 breathe 呼吸灯动画。
+• V3.7.7：引入 1px 隐藏视频保活方案，解决 iOS Safari 自动休眠问题。
 
 ### 快捷键映射
 | 按键 | 功能说明 |
@@ -57,18 +47,15 @@ A high-performance web-based order calling terminal designed for high-frequency 
 *   **Visual Feedback System**: Features breathing light animations and real-time announcement highlighting to ensure the operational status is clear at a glance.
 *   **Local & Private Execution**: 100% front-end execution with no server dependency; supports offline use and protects configuration data via `localStorage`.
 
-### Change Log
-*   **V3.7.8 (Current Version)**:
-    *   Added voice "Emergency Break" function via `CLR` / `Backspace`.
-    *   Implemented `breathe` animation for the display area.
-    *   Restored and optimized the physical keyboard listener and anti-repeat logic from V3.7.1.
-*   **V3.7.7**:
-    *   Introduced 1px hidden video keep-alive solution to fix iOS Safari auto-sleep issues[span_3](start_span)[span_3](end_span).
-    *   Optimized speech engine warm-up to reduce latency after the notification tone.
-*   **V3.7.1**:
-    *   Established core broadcasting architecture with customizable speed, repeats, and voice selection.
-    *   Implemented Historical Log Rollback: Automatically restores the current input sequence after replaying history.
-    *   Integrated local storage functionality for user preference persistence.
+Change Log
+• V3.8 (Stable/Current Version):
+• New Segmented Color Alerts: Automatically switches font colors based on time elapsed since calling (5m-Yellow / 10m-Red / 30m-Grey) to enhance service time monitoring.
+• Pixel-level UI Optimization: Adjusted display container height to 110px. Used negative margin compensation to reclaim keypad space while increasing the main number size to 110px.
+• Performance Solidification: Inherited and locked all core "Emergency Break" and "Anti-Sleep" logic from V3.7.8.
+• V3.7.8:
+• Added voice "Emergency Break" function via CLR / Backspace.
+• Implemented breathe animation for the display area.
+• V3.7.7: Introduced 1px hidden video keep-alive solution to fix iOS Safari auto-sleep issues.
 
 ### Keyboard Shortcuts
 | Key | Action |
