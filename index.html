@@ -1,230 +1,594 @@
 <!DOCTYPE html>
-<html lang="en">
+
+<html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Order Terminal V3.8</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #000000;
-    --card: #111111;
-    --key: #222222;
-    --accent: #FF9F0A; 
-    --history: #94FF00; 
-    --text: #ffffff;
-    --danger: #FF453A; 
-    --next: #333333;
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Order Terminal V3.9.3</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+  <style>
+    /* ─── Design Tokens ─────────────────────────────── */
+    :root {
+      --bg:      #000000;
+      --card:    #111111;
+      --key:     #222222;
+      --accent:  #FF9F0A;
+      --history: #94FF00;
+      --text:    #ffffff;
+      --danger:  #FF453A;
+      --next:    #333333;
+    }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body {
-    font-family: 'Outfit', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    padding-top: env(safe-area-inset-top);
-  }
+```
+/* ─── Reset ──────────────────────────────────────── */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
 
-  .header { padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; }
-  .header h1 { font-size: 12px; color: #444; letter-spacing: 2px; }
-  #settingsBtn { background: none; border: 1px solid #333; color: #888; padding: 4px 10px; border-radius: 6px; font-size: 14px; }
+/* ─── Layout ─────────────────────────────────────── */
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-top: env(safe-area-inset-top);
+}
 
-  .display-area { padding: 5px 16px; }
-  .display {
-    background: var(--card);
-    border-radius: 20px;
-    height: 110px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 0 25px;
-    position: relative;
-    border: 1px solid rgba(255, 159, 10, 0.1);
-    box-shadow: 0 0 15px rgba(255, 159, 10, 0.05);
-    animation: breathe 4s ease-in-out infinite;
-    transition: all 0.1s ease;
-  }
+/* ─── Header ─────────────────────────────────────── */
+.header {
+  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-  /* 左侧统计监控区样式 */
-  .stats-box {
-    position: absolute;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    border-left: 1px solid #333;
-    padding-left: 12px;
-    pointer-events: none;
-  }
-  .last-label { font-size: 9px; color: #555; font-weight: 900; letter-spacing: 1px; }
-  .last-num-display { font-family: 'JetBrains Mono', monospace; font-size: 16px; color: #888; margin-bottom: 2px; }
-  .time-ago-display { 
-    font-family: 'JetBrains Mono', monospace; 
-    font-size: 22px; 
-    color: var(--history); 
-    font-weight: 700;
-    line-height: 1;
-    transition: color 0.5s ease;
-  }
+.header h1 {
+  font-size: 12px;
+  color: #444;
+  letter-spacing: 2px;
+}
 
-  @keyframes breathe {
-    0%, 100% { box-shadow: 0 0 5px rgba(255, 159, 10, 0.02); border-color: rgba(255, 159, 10, 0.1); }
-    50% { box-shadow: 0 0 20px rgba(255, 159, 10, 0.2); border-color: rgba(255, 159, 10, 0.4); }
-  }
+#settingsBtn {
+  background: none;
+  border: 1px solid #333;
+  color: #888;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
 
-  .display.playing {
-    animation: none;
-    border-color: var(--history);
-    box-shadow: 0 0 30px rgba(148, 255, 0, 0.4), inset 0 0 20px rgba(148, 255, 0, 0.1);
-  }
+/* ─── Main Display ───────────────────────────────── */
+.display-area {
+  padding: 5px 16px;
+}
 
-  .display-label { font-size: 10px; color: #666; font-weight: 600; margin-bottom: -15px; }
-  .display-number { 
-    font-family: 'JetBrains Mono', monospace; 
-    font-size: 110px; 
-    color: var(--accent);
-    text-align: right;
-    line-height: 1;
-  }
+.display {
+  background: var(--card);
+  border-radius: 20px;
+  height: 110px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 25px;
+  position: relative;
+  border: 1px solid rgba(255, 159, 10, 0.1);
+  box-shadow: 0 0 15px rgba(255, 159, 10, 0.05);
+  animation: breathe 4s ease-in-out infinite;
+  transition: all 0.1s ease;
+}
 
-  .history-container { padding: 8px 16px; display: flex; align-items: center; gap: 10px; }
-  .history-label { font-size: 10px; color: #444; width: 50px; font-weight: 900; line-height: 1; }
-  .history-bar { flex: 1; display: flex; gap: 8px; overflow-x: auto; }
-  .history-bar::-webkit-scrollbar { display: none; }
-  
-  .history-chip {
-    background: #1a1a1a; padding: 6px 12px; border-radius: 10px;
-    color: var(--history); font-family: 'JetBrains Mono', monospace;
-    font-size: 16px; flex-shrink: 0; border: 1px solid #222;
-  }
-  .history-chip:active, .history-chip.playing {
-    background: #ffffff !important; color: #000000 !important; transform: scale(0.9);
-  }
+.display.playing {
+  animation: none;
+  border-color: var(--history);
+  box-shadow: 0 0 30px rgba(148, 255, 0, 0.4), inset 0 0 20px rgba(148, 255, 0, 0.1);
+}
 
-  .keypad-area { flex: 1; display: flex; flex-direction: column; padding: 10px 16px 16px; gap: 10px; padding-bottom: env(safe-area-inset-bottom); }
-  .key-row { display: flex; gap: 10px; flex: 1; }
-  .key {
-    flex: 1; background: var(--key); border-radius: 15px;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'JetBrains Mono', monospace; font-size: 32px; color: #fff; border: none;
-    transition: all 0.1s ease;
+@keyframes breathe {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(255, 159, 10, 0.02);
+    border-color: rgba(255, 159, 10, 0.1);
   }
-
-  .key:active, .key.active-feedback {
-    background: #ffffff !important; color: #000000 !important; transform: scale(0.95) !important;         
+  50% {
+    box-shadow: 0 0 20px rgba(255, 159, 10, 0.2);
+    border-color: rgba(255, 159, 10, 0.4);
   }
+}
 
-  .key.go { flex: 2; background: var(--accent); color: #000; font-size: 20px; font-weight: 900; border-radius: 20px; }
-  .key.go.playing { background: #ffffff !important; color: #000000 !important; transform: scale(0.98); }
-  
-  .key.next { flex: 1; background: var(--next); color: #FFD60A; font-size: 20px; font-weight: 900; border-radius: 20px; }
-  .key.clear { color: var(--danger); font-size: 20px; font-weight: 900; }
-  .key.prev { color: #FFD60A; font-size: 20px; font-weight: 900; }
+/* ─── Stats Box (Last Call) ──────────────────────── */
+.stats-box {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  border-left: 1px solid #333;
+  padding-left: 12px;
+  cursor: pointer;
+  z-index: 10;
+}
 
-  .settings-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; z-index: 100; padding: 40px 20px; }
-  .settings-overlay.show { display: block; }
-  .settings-card { background: #111; border-radius: 25px; padding: 30px; border: 1px solid #222; max-width: 500px; margin: 0 auto; }
-  .setting-item { margin-bottom: 20px; }
-  .setting-item label { display: block; font-size: 11px; color: #555; margin-bottom: 8px; font-weight: 900; }
-  select, input[type="range"] { width: 100%; padding: 12px; background: #000; color: #fff; border: 1px solid #333; border-radius: 10px; font-size: 16px; }
-  .test-btn { margin-top: 10px; width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #444; border-radius: 10px; font-size: 13px; font-weight: 600; }
-</style>
+.last-label {
+  font-size: 9px;
+  color: #555;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.last-num-display {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  color: #888;
+  margin-bottom: 2px;
+}
+
+.time-ago-display {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  color: var(--history);
+  font-weight: 700;
+  line-height: 1;
+  transition: color 0.5s ease;
+}
+
+/* ─── Current Number ─────────────────────────────── */
+.display-label {
+  font-size: 10px;
+  color: #666;
+  font-weight: 600;
+  margin-bottom: -15px;
+}
+
+.display-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 110px;
+  color: var(--accent);
+  text-align: right;
+  line-height: 1;
+}
+
+/* ─── History Bar ────────────────────────────────── */
+.history-container {
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.history-label {
+  font-size: 10px;
+  color: #444;
+  width: 50px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.history-bar {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.history-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.history-chip {
+  background: #1a1a1a;
+  padding: 6px 12px;
+  border-radius: 10px;
+  color: var(--history);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  flex-shrink: 0;
+  border: 1px solid #222;
+  cursor: pointer;
+}
+
+.history-chip:active,
+.history-chip.playing {
+  background: #ffffff !important;
+  color: #000000 !important;
+  transform: scale(0.9);
+}
+
+/* ─── Keypad ─────────────────────────────────────── */
+.keypad-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 16px 16px;
+  padding-bottom: env(safe-area-inset-bottom);
+  gap: 10px;
+}
+
+.key-row {
+  display: flex;
+  gap: 10px;
+  flex: 1;
+}
+
+.key {
+  flex: 1;
+  background: var(--key);
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 32px;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  /* 移除行内 user-select，统一在这里处理 */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.key:active,
+.key.active-feedback {
+  background: #ffffff !important;
+  color: #000000 !important;
+  transform: scale(0.95) !important;
+}
+
+.key.go {
+  flex: 2;
+  background: var(--accent);
+  color: #000;
+  font-size: 20px;
+  font-weight: 900;
+  border-radius: 20px;
+}
+
+.key.go.playing {
+  background: #ffffff !important;
+  color: #000000 !important;
+  transform: scale(0.98);
+}
+
+.key.next {
+  flex: 1;
+  background: var(--next);
+  color: #FFD60A;
+  font-size: 20px;
+  font-weight: 900;
+  border-radius: 20px;
+}
+
+.key.clear {
+  color: var(--danger);
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.key.prev {
+  color: #FFD60A;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+/* ─── Log Overlay ────────────────────────────────── */
+.log-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: none;
+  z-index: 200;
+  flex-direction: column;
+}
+
+.log-overlay.show {
+  display: flex;
+}
+
+.log-header {
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #222;
+}
+
+.log-header h2 {
+  font-size: 18px;
+  color: #888;
+}
+
+.log-close-btn {
+  background: none;
+  border: 1px solid #333;
+  color: #fff;
+  padding: 8px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.log-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 20px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.log-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px 0;
+  border-bottom: 1px solid #111;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.log-item .order-part {
+  color: var(--accent);
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.log-item .time-part {
+  color: #666;
+  font-size: 14px;
+}
+
+.log-item .gap-part {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.log-footer {
+  padding: 20px;
+  background: #0a0a0a;
+  border-top: 1px solid #222;
+  text-align: center;
+}
+
+.avg-label {
+  font-size: 11px;
+  color: #555;
+  margin-bottom: 5px;
+}
+
+.avg-value {
+  color: var(--history);
+  font-size: 24px;
+  font-weight: 900;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ─── Settings Overlay ───────────────────────────── */
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  display: none;
+  z-index: 100;
+  padding: 40px 20px;
+}
+
+.settings-overlay.show {
+  display: block;
+}
+
+.settings-card {
+  background: #111;
+  border-radius: 25px;
+  padding: 30px;
+  border: 1px solid #222;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.setting-item {
+  margin-bottom: 20px;
+}
+
+.setting-item label {
+  display: block;
+  font-size: 11px;
+  color: #555;
+  margin-bottom: 8px;
+  font-weight: 900;
+}
+
+.setting-divider {
+  margin-top: 30px;
+  border-top: 1px solid #222;
+  padding-top: 20px;
+}
+
+select,
+input[type="range"] {
+  width: 100%;
+  padding: 12px;
+  background: #000;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+.test-btn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 12px;
+  background: #222;
+  color: #fff;
+  border: 1px solid #444;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.reset-btn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 12px;
+  background: none;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.save-btn {
+  width: 100%;
+  padding: 18px;
+  background: var(--accent);
+  border: none;
+  font-weight: 900;
+  border-radius: 15px;
+  color: #000;
+  font-size: 18px;
+  cursor: pointer;
+}
+```
+
+  </style>
 </head>
 <body ontouchstart="">
 
-<div id="noSleepVideoContainer" style="position:absolute; width:1px; height:1px; opacity:0.01; pointer-events:none;"></div>
+  <!-- 防息屏：静默视频容器 -->
 
-<div class="header">
-  <h1>ORDER TERMINAL V3.8</h1>
-  <button id="settingsBtn">SETTINGS</button>
-</div>
+  <div id="noSleepVideoContainer" style="position:absolute; width:1px; height:1px; opacity:0.01; pointer-events:none;"></div>
 
-<div class="display-area">
-  <div class="display" id="mainDisplay">
-    <div class="stats-box" id="statsBox">
+  <!-- 顶部标题栏 -->
+
+  <header class="header">
+    <h1>ORDER TERMINAL V3.9.3</h1>
+    <button id="settingsBtn">SETTINGS</button>
+  </header>
+
+  <!-- 主显示屏 -->
+
+  <div class="display-area">
+    <div class="display" id="mainDisplay">
+      <div class="stats-box" id="statsBox">
         <div class="last-label">LAST</div>
         <div class="last-num-display" id="lastNumLabel">#--</div>
         <div class="time-ago-display" id="timeDisplay">0m</div>
+      </div>
+      <div class="display-label">READY TO SERVE</div>
+      <div class="display-number" id="displayNum">—</div>
     </div>
-    <div class="display-label">READY TO SERVE</div>
-    <div class="display-number" id="displayNum">—</div>
   </div>
-</div>
 
-<div class="history-container">
-  <div class="history-label">RECENT<br>LOG</div>
-  <div class="history-bar" id="historyBar"></div>
-</div>
+  <!-- 历史记录条 -->
 
-<div class="keypad-area">
-  <div class="key-row">
-    <div class="key" onclick="press('1')">1</div>
-    <div class="key" onclick="press('2')">2</div>
-    <div class="key" onclick="press('3')">3</div>
+  <div class="history-container">
+    <div class="history-label">RECENT<br>LOG</div>
+    <div class="history-bar" id="historyBar"></div>
   </div>
-  <div class="key-row">
-    <div class="key" onclick="press('4')">4</div>
-    <div class="key" onclick="press('5')">5</div>
-    <div class="key" onclick="press('6')">6</div>
-  </div>
-  <div class="key-row">
-    <div class="key" onclick="press('7')">7</div>
-    <div class="key" onclick="press('8')">8</div>
-    <div class="key" onclick="press('9')">9</div>
-  </div>
-  <div class="key-row">
-    <div class="key clear" onclick="clearAll()">CLR</div>
-    <div class="key" onclick="press('0')">0</div>
-    <div class="key prev" onclick="skipToPrev()">PREV</div>
-  </div>
-  <div class="key-row">
-    <div class="key go" id="goBtn" onclick="announce()">ANNOUNCE</div>
-    <div class="key next" onclick="skipToNext()">NEXT</div>
-  </div>
-</div>
 
-<div class="settings-overlay" id="settingsOverlay">
-  <div class="settings-card">
-    <div class="setting-item">
-      <label>Voice Engine</label>
-      <select id="voiceSelect"></select>
-      <button class="test-btn" onclick="testVoice()">🔊 TEST VOICE & DING</button>
+  <!-- 键盘区域 -->
+
+  <div class="keypad-area">
+    <div class="key-row">
+      <button class="key" data-key="1">1</button>
+      <button class="key" data-key="2">2</button>
+      <button class="key" data-key="3">3</button>
     </div>
-    <div class="setting-item">
-      <label>Repeat: <span id="repeatVal">2</span> Times</label>
-      <input type="range" id="repeatRange" min="1" max="5" value="2">
+    <div class="key-row">
+      <button class="key" data-key="4">4</button>
+      <button class="key" data-key="5">5</button>
+      <button class="key" data-key="6">6</button>
     </div>
-    <div class="setting-item">
-      <label>Speed: <span id="speedVal">1.0</span>x</label>
-      <input type="range" id="speedRange" min="0.5" max="1.5" step="0.1" value="1.0">
+    <div class="key-row">
+      <button class="key" data-key="7">7</button>
+      <button class="key" data-key="8">8</button>
+      <button class="key" data-key="9">9</button>
     </div>
-    <button onclick="saveAndClose()" style="width:100%; padding:18px; background:var(--accent); border:none; font-weight:900; border-radius:15px; color:#000; font-size:18px;">DONE</button>
+    <div class="key-row">
+      <button class="key clear" id="clearBtn">CLR</button>
+      <button class="key" data-key="0">0</button>
+      <button class="key prev" id="prevBtn">PREV</button>
+    </div>
+    <div class="key-row">
+      <button class="key go" id="goBtn">ANNOUNCE</button>
+      <button class="key next" id="nextBtn">NEXT</button>
+    </div>
   </div>
-</div>
+
+  <!-- 日志面板 -->
+
+  <div class="log-overlay" id="logOverlay">
+    <div class="log-header">
+      <h2>DAILY LOG</h2>
+      <button class="log-close-btn" id="logCloseBtn">CLOSE</button>
+    </div>
+    <div class="log-content" id="logContent"></div>
+    <div class="log-footer">
+      <div class="avg-label">AVERAGE INTERVAL (≤20m)</div>
+      <div class="avg-value" id="avgValue">0.0m</div>
+    </div>
+  </div>
+
+  <!-- 设置面板 -->
+
+  <div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-card">
+      <div class="setting-item">
+        <label>Voice Engine</label>
+        <select id="voiceSelect"></select>
+        <button class="test-btn" id="testVoiceBtn">🔊 TEST VOICE & DING</button>
+      </div>
+      <div class="setting-item">
+        <label>Repeat: <span id="repeatVal">2</span> Times</label>
+        <input type="range" id="repeatRange" min="1" max="5" value="2">
+      </div>
+      <div class="setting-item">
+        <label>Speed: <span id="speedVal">1.0</span>x</label>
+        <input type="range" id="speedRange" min="0.5" max="1.5" step="0.1" value="1.0">
+      </div>
+      <div class="setting-item setting-divider">
+        <label>DATA MANAGEMENT</label>
+        <button class="reset-btn" id="resetBtn">🗑 RESET ALL LOGS & HISTORY</button>
+      </div>
+      <button class="save-btn" id="saveBtn">DONE</button>
+    </div>
+  </div>
 
 <script>
+  // ─── 状态 ─────────────────────────────────────────────
   let currentVal = '';
-  let history = [];
+  let orderHistory = [];   // 重命名：避免遮蔽 window.history
+  let callLog = [];
   let audioCtx = null;
   let wakeLock = null;
   let isAborted = false;
   let lastCallTimestamp = null;
   let lastCallNumber = '--';
+  let lastCallTimeString = '--:--';
 
-  const blankVideoSrc = "data:video/mp4;base64,AAAAHGZ0eXBtcDQyAAAAAG1wNDJpc29tYXZjMQAAAzphdmNjMQAAAAh0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAMWhhbmRsAAAAAHZpZGVvAAAAAAAAAAAAAAAAbWluZgAAABR2bWhkAAAAAAABAAAAAAAAAAAAAAAkZGluZgAAABxkcmVmAAAAAAAAAAEAAAAMdXJsIAAAAAEAAAEcbW9vdgAAAGxtdmhkAAAAAAAAAAAAAAAAAAAD6AAABDcAAQAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAACdHJha3MAAABydGtoZAAAAAMAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAD";
+  // ─── 盲打状态标志 ─────────────────────────────────────
+  // isTypingDuringAnnounce：播报中是否已开始盲打输入
+  // blindTypedVal：播报中盲打输入的值（播报结束后用此值，不做+1）
+  let isTypingDuringAnnounce = false;
+  let blindTypedVal = '';
+  // nextValOverride：播报结束时用于覆盖自动+1的值（null=正常+1）
+  let nextValOverride = null;
 
+  // 防息屏：最短可编码的静默 MP4
+  const BLANK_VIDEO_SRC = "data:video/mp4;base64,AAAAHGZ0eXBtcDQyAAAAAG1wNDJpc29tYXZjMQAAAzphdmNjMQAAAAh0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAMWhhbmRsAAAAAHZpZGVvAAAAAAAAAAAAAAAAbWluZgAAABR2bWhkAAAAAAABAAAAAAAAAAAAAAAkZGluZgAAABxkcmVmAAAAAAAAAAEAAAAMdXJsIAAAAAEAAAEcbW9vdgAAAGxtdmhkAAAAAAAAAAAAAAAAAAAD6AAABDcAAQAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAACdHJha3MAAABydGtoZAAAAAMAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAD";
+
+  // ─── Wake Lock / 防息屏 ───────────────────────────────
   async function requestWakeLock() {
     if ('wakeLock' in navigator) {
-      try { wakeLock = await navigator.wakeLock.request('screen'); } 
-      catch (err) { console.log(err); }
+      try { wakeLock = await navigator.wakeLock.request('screen'); } catch (_) {}
     }
   }
 
@@ -233,181 +597,237 @@
     const container = document.getElementById('noSleepVideoContainer');
     if (!container.querySelector('video')) {
       const v = document.createElement('video');
-      v.src = blankVideoSrc; v.muted = true; v.loop = true; v.playsInline = true;
-      v.play().catch(()=>{}); container.appendChild(v);
+      v.src = BLANK_VIDEO_SRC;
+      v.muted = true;
+      v.loop = true;
+      v.playsInline = true;
+      v.play().catch(() => {});
+      container.appendChild(v);
     }
   }
 
-  function playOriginalDing() {
+  // ─── 音效 ─────────────────────────────────────────────
+  function playDing() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
+
     const now = audioCtx.currentTime;
     const dur = 0.55;
-    const osc1 = audioCtx.createOscillator(); const g1 = audioCtx.createGain();
-    osc1.type = 'sine'; osc1.frequency.value = 830;
-    g1.gain.setValueAtTime(0.35, now); g1.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+    const osc1 = audioCtx.createOscillator();
+    const g1   = audioCtx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.value = 830;
+    g1.gain.setValueAtTime(0.35, now);
+    g1.gain.exponentialRampToValueAtTime(0.001, now + dur);
     osc1.connect(g1).connect(audioCtx.destination);
-    const osc2 = audioCtx.createOscillator(); const g2 = audioCtx.createGain();
-    osc2.type = 'sine'; osc2.frequency.value = 1245;
-    g2.gain.setValueAtTime(0.2, now); g2.gain.exponentialRampToValueAtTime(0.001, now + dur * 0.7);
+
+    const osc2 = audioCtx.createOscillator();
+    const g2   = audioCtx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.value = 1245;
+    g2.gain.setValueAtTime(0.2, now);
+    g2.gain.exponentialRampToValueAtTime(0.001, now + dur * 0.7);
     osc2.connect(g2).connect(audioCtx.destination);
-    osc1.start(now); osc2.start(now); osc1.stop(now + dur); osc2.stop(now + dur);
+
+    osc1.start(now); osc2.start(now);
+    osc1.stop(now + dur); osc2.stop(now + dur);
   }
 
-  // 强化后的每分钟更新逻辑
+  // ─── 显示 ─────────────────────────────────────────────
+  function updateDisplay() {
+    document.getElementById('displayNum').textContent = currentVal || '—';
+  }
+
   function updateTimeDisplay() {
     if (!lastCallTimestamp) return;
-    const now = Date.now();
-    const diffMinutes = Math.floor((now - lastCallTimestamp) / 60000);
-    const displayElement = document.getElementById('timeDisplay');
-    
-    if (diffMinutes >= 30) {
-      displayElement.textContent = "30+m";
-      displayElement.style.color = "#444";
-    } else if (diffMinutes >= 10) {
-      displayElement.textContent = diffMinutes + "m";
-      displayElement.style.color = "var(--danger)"; 
-    } else if (diffMinutes >= 5) {
-      displayElement.textContent = diffMinutes + "m";
-      displayElement.style.color = "#FFD60A"; 
+    const diffMin = Math.floor((Date.now() - lastCallTimestamp) / 60000);
+    const el = document.getElementById('timeDisplay');
+    if (diffMin >= 30) {
+      el.textContent = lastCallTimeString;
+      el.style.color = '#444';
     } else {
-      displayElement.textContent = diffMinutes + "m";
-      displayElement.style.color = "var(--history)"; 
+      el.textContent = diffMin + 'm';
+      el.style.color = diffMin >= 10 ? 'var(--danger)' : diffMin >= 5 ? '#FFD60A' : 'var(--history)';
     }
   }
+
   setInterval(updateTimeDisplay, 60000);
 
-  function loadSettings() {
-    const savedRepeat = localStorage.getItem('repeat') || 2;
-    const savedSpeed = localStorage.getItem('speed') || 1.0;
-    document.getElementById('repeatRange').value = savedRepeat;
-    document.getElementById('repeatVal').textContent = savedRepeat;
-    document.getElementById('speedRange').value = savedSpeed;
-    document.getElementById('speedVal').textContent = savedSpeed;
+  // ─── 键盘输入 ─────────────────────────────────────────
+  // fromPhysical：是否来自物理键盘（触发盲打逻辑）
+  function press(num, fromPhysical = false) {
+    startAntiSleep();
+
+    if (fromPhysical && window.speechSynthesis.speaking) {
+      // ── 情况1：播报进行中，物理键盘输入 ──────────────
+      // 第一键重置，后续追加；不打断语音；记录 override
+      if (!isTypingDuringAnnounce) {
+        // 第一次按键：重置盲打缓冲
+        isTypingDuringAnnounce = true;
+        blindTypedVal = num;
+      } else {
+        // 后续追加（最多3位）
+        if (blindTypedVal.length < 3) blindTypedVal += num;
+      }
+      nextValOverride = blindTypedVal;    // 播报结束时用此值
+      currentVal = blindTypedVal;
+      updateDisplay();
+      return;
+    }
+
+    if (fromPhysical && !window.speechSynthesis.speaking) {
+      // ── 情况2：空闲时，物理键盘输入 ──────────────────
+      // 第一键永远重置（判断是否为"新一轮输入的第一键"）
+      // 用 physicalInputFresh 标记：announce结束 或 上次非物理按键后重置
+      if (physicalInputFresh) {
+        currentVal = num;
+        physicalInputFresh = false;
+      } else {
+        if (currentVal.length < 3) currentVal += num;
+      }
+      updateDisplay();
+      return;
+    }
+
+    // ── 屏幕键盘输入（触摸）：保持原有追加逻辑 ─────────
+    if (currentVal.length < 3) {
+      currentVal += num;
+      updateDisplay();
+    }
   }
 
-  function saveAndClose() {
-    localStorage.setItem('repeat', document.getElementById('repeatRange').value);
-    localStorage.setItem('speed', document.getElementById('speedRange').value);
-    localStorage.setItem('voiceName', document.getElementById('voiceSelect').value);
-    toggleSettings();
-  }
+  // 标记物理键盘是否处于"新一轮输入"起点
+  // 初始为 true，announce结束后重置为 true
+  let physicalInputFresh = true;
 
-  function initVoices() {
-    const voices = window.speechSynthesis.getVoices();
-    const select = document.getElementById('voiceSelect');
-    if(!voices.length) return;
-    const savedVoice = localStorage.getItem('voiceName');
-    select.innerHTML = '';
-    voices.forEach((v) => {
-      const opt = document.createElement('option');
-      opt.value = v.name; opt.textContent = `${v.name} (${v.lang})`;
-      if (v.name === savedVoice || v.name.includes('Samantha')) opt.selected = true;
-      select.appendChild(opt);
-    });
-  }
-
-  window.speechSynthesis.onvoiceschanged = initVoices;
-  loadSettings(); initVoices();
-
-  function press(num) { startAntiSleep(); if (currentVal.length < 3) { currentVal += num; updateDisplay(); } }
-  
   function clearAll() {
     startAntiSleep();
     if (window.speechSynthesis.speaking) {
-      isAborted = true; 
+      isAborted = true;
       window.speechSynthesis.cancel();
       document.getElementById('mainDisplay').classList.remove('playing');
       document.getElementById('goBtn').classList.remove('playing');
-      const chips = document.querySelectorAll('.history-chip');
-      chips.forEach(c => c.classList.remove('playing'));
-      return; 
+      document.querySelectorAll('.history-chip').forEach(c => c.classList.remove('playing'));
+      // 清空盲打状态
+      isTypingDuringAnnounce = false;
+      blindTypedVal = '';
+      nextValOverride = null;
+      physicalInputFresh = true;
+      return;
     }
-    currentVal = ''; 
+    currentVal = '';
+    physicalInputFresh = true;
     updateDisplay();
   }
 
-  function updateDisplay() { document.getElementById('displayNum').textContent = currentVal || '—'; }
-
   function skipToNext() {
-    let val = parseInt(currentVal, 10) || 0;
+    const val = parseInt(currentVal, 10) || 0;
     currentVal = String(val + 1 > 999 ? 1 : val + 1);
+    physicalInputFresh = true;  // 翻页后下一次物理输入重置
     updateDisplay();
   }
 
   function skipToPrev() {
-    let val = parseInt(currentVal, 10) || 0;
+    const val = parseInt(currentVal, 10) || 0;
     currentVal = String(val - 1 < 1 ? 999 : val - 1);
+    physicalInputFresh = true;  // 翻页后下一次物理输入重置
     updateDisplay();
   }
 
-  function testVoice() {
-    startAntiSleep(); playOriginalDing();
-    setTimeout(() => {
-      const voiceName = document.getElementById('voiceSelect').value;
-      const speed = document.getElementById('speedRange').value;
-      const utter = new SpeechSynthesisUtterance("Order number 42");
-      utter.voice = window.speechSynthesis.getVoices().find(v => v.name === voiceName);
-      utter.rate = speed;
-      window.speechSynthesis.speak(utter);
-    }, 600);
+  // ─── 历史记录 ─────────────────────────────────────────
+  function renderHistory() {
+    const bar = document.getElementById('historyBar');
+    bar.innerHTML = '';
+    orderHistory.forEach(n => {
+      const chip = document.createElement('button');
+      chip.className = 'history-chip';
+      chip.textContent = `#${n}`;
+      chip.addEventListener('click', () => announce(n, chip));
+      bar.appendChild(chip);
+    });
   }
 
+  // ─── 播报核心 ─────────────────────────────────────────
   function announce(fromHistoryValue = null, chipElement = null) {
     startAntiSleep();
     if (!currentVal && !fromHistoryValue) return;
     if (window.speechSynthesis.speaking) return;
-    
-    isAborted = false; 
-    const originalVal = currentVal;
-    const numToSay = fromHistoryValue || currentVal;
-    const targetBtn = chipElement || document.getElementById('goBtn');
-    const repeatTimes = parseInt(document.getElementById('repeatRange').value);
-    const speed = document.getElementById('speedRange').value;
-    const voiceName = document.getElementById('voiceSelect').value;
-    const mainDisplay = document.getElementById('mainDisplay');
-    let count = 0;
-    
-    if (fromHistoryValue) { currentVal = fromHistoryValue; updateDisplay(); }
-    
-    targetBtn.classList.add('playing'); 
-    mainDisplay.classList.add('playing');
 
-    // 记录呼叫时间与号码
-    lastCallTimestamp = Date.now();
-    lastCallNumber = numToSay;
-    document.getElementById('lastNumLabel').textContent = "#" + lastCallNumber;
+    isAborted = false;
+    const originalVal  = currentVal;
+    const numToSay     = fromHistoryValue || currentVal;
+    const targetBtn    = chipElement || document.getElementById('goBtn');
+    const repeatTimes  = parseInt(document.getElementById('repeatRange').value);
+    const speed        = document.getElementById('speedRange').value;
+    const voiceName    = document.getElementById('voiceSelect').value;
+
+    // 若从历史播报，临时显示该号码
+    if (fromHistoryValue) { currentVal = fromHistoryValue; updateDisplay(); }
+
+    targetBtn.classList.add('playing');
+    document.getElementById('mainDisplay').classList.add('playing');
+
+    // 记录本次呼叫
+    const now  = Date.now();
+    const gap  = lastCallTimestamp ? Math.floor((now - lastCallTimestamp) / 60000) : 0;
+    const d    = new Date();
+    const tStr = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+
+    lastCallTimestamp  = now;
+    lastCallNumber     = numToSay;
+    lastCallTimeString = tStr;
+    document.getElementById('lastNumLabel').textContent = '#' + numToSay;
+
+    if (!fromHistoryValue) {
+      callLog.push({ number: numToSay, timeStr: tStr, interval: gap });
+      if (callLog.length > 300) callLog.shift();
+    }
     updateTimeDisplay();
 
+    // 循环播报
+    let count = 0;
     async function performCycle() {
-      if (isAborted) return; 
-
-      playOriginalDing(); 
-      await new Promise(r => setTimeout(r, 650)); 
-      
+      if (isAborted) return;
+      playDing();
+      await new Promise(r => setTimeout(r, 650));
       if (isAborted) return;
 
       const utter = new SpeechSynthesisUtterance(`Order number ${numToSay}`);
       utter.voice = window.speechSynthesis.getVoices().find(v => v.name === voiceName);
-      utter.rate = speed;
+      utter.rate  = speed;
       utter.onend = () => {
         if (isAborted) return;
         count++;
-        if (count < repeatTimes) { setTimeout(performCycle, 400); } 
-        else {
-          targetBtn.classList.remove('playing'); 
-          mainDisplay.classList.remove('playing');
-          if (fromHistoryValue) { 
-            currentVal = originalVal; 
+        if (count < repeatTimes) {
+          setTimeout(performCycle, 400);
+        } else {
+          targetBtn.classList.remove('playing');
+          document.getElementById('mainDisplay').classList.remove('playing');
+
+          if (fromHistoryValue) {
+            // 历史播报：恢复播报前的值
+            currentVal = isTypingDuringAnnounce ? blindTypedVal : originalVal;
+          } else if (nextValOverride !== null) {
+            // ── 情况1结束：播报中盲打了新号码，不做+1，显示盲打值
+            currentVal = nextValOverride;
           } else {
-            let next = parseInt(numToSay, 10) + 1;
+            // ── 情况3：正常播报结束，+1
+            const next = parseInt(numToSay, 10) + 1;
             currentVal = String(next > 999 ? 1 : next);
-            if (!history.includes(numToSay)) { 
-              history.unshift(numToSay); 
-              if (history.length > 10) history.pop(); 
-              renderHistory(); 
+            if (!orderHistory.includes(numToSay)) {
+              orderHistory.unshift(numToSay);
+              if (orderHistory.length > 10) orderHistory.pop();
+              renderHistory();
             }
           }
+
+          // 重置盲打状态，下一轮物理输入从"第一键重置"开始
+          isTypingDuringAnnounce = false;
+          blindTypedVal = '';
+          nextValOverride = null;
+          physicalInputFresh = true;
+
           updateDisplay();
         }
       };
@@ -416,24 +836,160 @@
     performCycle();
   }
 
-  function renderHistory() {
-    const bar = document.getElementById('historyBar'); bar.innerHTML = '';
-    history.forEach(n => {
-      const chip = document.createElement('div');
-      chip.className = 'history-chip'; chip.textContent = `#${n}`;
-      chip.onclick = () => announce(n, chip); bar.appendChild(chip);
+  // ─── 日志面板 ─────────────────────────────────────────
+  function openLogOverlay() {
+    document.getElementById('logOverlay').classList.add('show');
+    renderLogContent();
+  }
+
+  function closeLogOverlay() {
+    document.getElementById('logOverlay').classList.remove('show');
+  }
+
+  function renderLogContent() {
+    const container = document.getElementById('logContent');
+    container.innerHTML = '';
+    let total = 0, count = 0;
+
+    callLog.slice().reverse().forEach(item => {
+      const gapColor =
+        item.interval >= 10 ? 'var(--danger)' :
+        item.interval >= 5  ? '#FFD60A'       : 'var(--history)';
+
+      const row = document.createElement('div');
+      row.className = 'log-item';
+      row.innerHTML = `
+        <div class="order-part">#${item.number}</div>
+        <div class="time-part">${item.timeStr}</div>
+        <div class="gap-part" style="color:${gapColor}">${item.interval}m</div>
+      `;
+      container.appendChild(row);
+      if (item.interval <= 20 && item.interval > 0) { total += item.interval; count++; }
+    });
+
+    document.getElementById('avgValue').textContent =
+      (count > 0 ? (total / count).toFixed(1) : '0.0') + 'm';
+  }
+
+  // ─── 设置面板 ─────────────────────────────────────────
+  function toggleSettings() {
+    document.getElementById('settingsOverlay').classList.toggle('show');
+  }
+
+  function loadSettings() {
+    const savedRepeat = localStorage.getItem('repeat') || 2;
+    const savedSpeed  = localStorage.getItem('speed')  || 1.0;
+    document.getElementById('repeatRange').value       = savedRepeat;
+    document.getElementById('repeatVal').textContent   = savedRepeat;
+    document.getElementById('speedRange').value        = savedSpeed;
+    document.getElementById('speedVal').textContent    = savedSpeed;
+  }
+
+  function saveAndClose() {
+    localStorage.setItem('repeat',    document.getElementById('repeatRange').value);
+    localStorage.setItem('speed',     document.getElementById('speedRange').value);
+    localStorage.setItem('voiceName', document.getElementById('voiceSelect').value);
+    toggleSettings();
+  }
+
+  function resetDayData() {
+    if (!confirm('确定清除今日所有记录和历史吗？')) return;
+    callLog            = [];
+    orderHistory       = [];
+    lastCallTimestamp  = null;
+    lastCallNumber     = '--';
+    lastCallTimeString = '--:--';
+    currentVal         = '';
+
+    document.getElementById('displayNum').textContent    = '—';
+    document.getElementById('lastNumLabel').textContent  = '#--';
+    const timeEl = document.getElementById('timeDisplay');
+    timeEl.textContent = '0m';
+    timeEl.style.color = 'var(--history)';
+
+    renderHistory();
+    toggleSettings();
+    alert('记录已清空。');
+  }
+
+  // ─── 语音引擎 ─────────────────────────────────────────
+  function initVoices() {
+    const voices = window.speechSynthesis.getVoices();
+    if (!voices.length) return;
+    const select     = document.getElementById('voiceSelect');
+    const savedVoice = localStorage.getItem('voiceName');
+    select.innerHTML = '';
+    voices.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value       = v.name;
+      opt.textContent = `${v.name} (${v.lang})`;
+      if (v.name === savedVoice || v.name.includes('Samantha')) opt.selected = true;
+      select.appendChild(opt);
     });
   }
 
-  function toggleSettings() { document.getElementById('settingsOverlay').classList.toggle('show'); }
-  document.getElementById('settingsBtn').onclick = toggleSettings;
-  document.getElementById('speedRange').oninput = (e) => { document.getElementById('speedVal').textContent = e.target.value; };
-  document.getElementById('repeatRange').oninput = (e) => { document.getElementById('repeatVal').textContent = e.target.value; };
+  function testVoice() {
+    startAntiSleep();
+    playDing();
+    setTimeout(() => {
+      const utter = new SpeechSynthesisUtterance('Order number 42');
+      utter.voice = window.speechSynthesis.getVoices().find(
+        v => v.name === document.getElementById('voiceSelect').value
+      );
+      utter.rate = document.getElementById('speedRange').value;
+      window.speechSynthesis.speak(utter);
+    }, 600);
+  }
 
+  // ─── 事件绑定 ─────────────────────────────────────────
+
+  // 数字键盘（data-key 统一绑定，取代 12 个 onclick）
+  document.querySelectorAll('.key[data-key]').forEach(btn => {
+    btn.addEventListener('click', () => press(btn.dataset.key));
+  });
+
+  document.getElementById('clearBtn').addEventListener('click', clearAll);
+  document.getElementById('prevBtn').addEventListener('click', () => { startAntiSleep(); skipToPrev(); });
+  document.getElementById('nextBtn').addEventListener('click', () => { startAntiSleep(); skipToNext(); });
+  document.getElementById('goBtn').addEventListener('click', () => announce());
+  document.getElementById('statsBox').addEventListener('click', openLogOverlay);
+  document.getElementById('logCloseBtn').addEventListener('click', closeLogOverlay);
+  document.getElementById('settingsBtn').addEventListener('click', toggleSettings);
+  document.getElementById('saveBtn').addEventListener('click', saveAndClose);
+  document.getElementById('testVoiceBtn').addEventListener('click', testVoice);
+  document.getElementById('resetBtn').addEventListener('click', resetDayData);
+
+  document.getElementById('repeatRange').addEventListener('input', e => {
+    document.getElementById('repeatVal').textContent = e.target.value;
+  });
+  document.getElementById('speedRange').addEventListener('input', e => {
+    document.getElementById('speedVal').textContent = e.target.value;
+  });
+
+  // 蓝牙键盘映射
+  document.addEventListener('keydown', e => {
+    if (document.getElementById('settingsOverlay').classList.contains('show')) return;
+    if      (e.key >= '0' && e.key <= '9') { press(e.key, true); }  // fromPhysical = true
+    else if (e.key === 'Enter')             { e.preventDefault(); announce(); }
+    else if (e.key === '+' || e.key === '=') { skipToNext(); }
+    else if (e.key === '-')                 { skipToPrev(); }
+    else if (e.key === 'Backspace')         { e.preventDefault(); clearAll(); }
+    else if (e.key === 'Escape')            { closeLogOverlay(); toggleSettings(); }
+  });
+
+  // 首次点击触发防息屏
   document.addEventListener('click', startAntiSleep, { once: true });
+
+  // 页面重新可见时恢复 Wake Lock
   document.addEventListener('visibilitychange', () => {
     if (wakeLock !== null && document.visibilityState === 'visible') requestWakeLock();
   });
+
+  // ─── 初始化 ───────────────────────────────────────────
+  window.speechSynthesis.onvoiceschanged = initVoices;
+  loadSettings();
+  initVoices();
 </script>
+
 </body>
 </html>
