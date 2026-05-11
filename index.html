@@ -31,24 +31,34 @@
 }
 
 /* ─── Layout ─────────────────────────────────────── */
-html, body {
-  /* 解决伪 App 底部黑条的核心：填满所有可用高度 */
-  height: -webkit-fill-available; 
+html {
+  height: 100%;
   overflow: hidden;
-  background: #000;
+  overscroll-behavior: none;
 }
 
 body {
   font-family: 'Outfit', sans-serif;
   background: var(--bg);
   color: var(--text);
-  /* 动态高度组合拳，删掉 position: fixed */
+  /* PWA模式用 stretch 填满整个屏幕包含安全区 */
+  width: 100vw;
   height: 100vh;
-  height: 100dvh;
+  /* 用padding而不是position:fixed来处理安全区 */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
   display: flex;
   flex-direction: column;
-  padding-top: env(safe-area-inset-top);
+  overflow: hidden;
+  overscroll-behavior: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  /* 触摸滚动禁止 */
   touch-action: none;
+  box-sizing: border-box;
 }
 
 /* 让滚动区域（日志面板内容）局部恢复 */
@@ -84,15 +94,14 @@ body {
 /* ─── Main Display ───────────────────────────────── */
 .display-area {
   padding: clamp(3px, 0.8dvh, 8px) 16px;
-  flex-shrink: 1;
+  flex-shrink: 0;
 }
 
 .display {
   background: var(--card);
   border-radius: 20px;
-  height: 18dvh;      /* 关键：改为屏幕比例，自动缩短 */
-  min-height: 100px;  /* 保证不低于 100px */
-  flex-shrink: 1;     /* 关键：允许被挤压 */
+  height: 130px;      /* 固定高度容纳110px字体，不压缩 */
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -145,7 +154,7 @@ body {
 
 .last-num-display {
   font-family: 'JetBrains Mono', monospace;
-  font-size: clamp(12px, 2dvh, 18px);
+  font-size: clamp(12px, 1.8dvh, 18px);
   color: #888;
   margin-bottom: 2px;
 }
@@ -169,7 +178,7 @@ body {
 
 .display-number {
   font-family: 'JetBrains Mono', monospace;
-  font-size: clamp(60px, 12dvh, 110px); /* 关键：数字也随屏幕缩放 */
+  font-size: 120px;
   color: var(--accent);
   text-align: right;
   line-height: 1;
@@ -181,7 +190,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-shrink: 1;
+  flex-shrink: 0;
 }
 
 .history-label {
@@ -228,41 +237,35 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: clamp(4px, 1dvh, 10px) 16px;
-  padding-bottom: calc(env(safe-area-inset-bottom) + 15px) !important;
-  gap: clamp(4px, 0.8dvh, 10px);
-  /* 关键修改：告诉浏览器，这个区域哪怕缩到 0 像素也不准溢出 */
-  min-height: 0; 
-  flex-shrink: 1;
+  padding: clamp(6px, 1dvh, 12px) 16px;
+  padding-bottom: clamp(6px, 1dvh, 16px);
+  gap: clamp(6px, 1dvh, 12px);
+  min-height: 0;
 }
 
 .key-row {
   display: flex;
   gap: clamp(6px, 1dvh, 12px);
-  /* 关键修改 */
-  flex: 1;        /* 每一行都尝试平分剩余高度 */
-  flex-basis: 0;  /* 初始高度设为 0，完全听从 Flex 分配 */
-  min-height: 0;  /* 允许行高度被挤压 */
+  flex: 1;
+  min-height: 0;
 }
 
 .key {
   flex: 1;
-  flex-basis: 0;          /* 新增：强制初始高度为0，听从Flex压缩 */
   background: var(--key);
   border-radius: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: 'JetBrains Mono', monospace;
-  font-size: clamp(18px, 3.5dvh, 36px); /* 稍微调小最小字号防止顶爆 */
+  font-size: clamp(20px, 3.5dvh, 36px);
   color: #fff;
   border: none;
   cursor: pointer;
-  padding: 2px;           /* 新增：极小的内边距，给缩放留出物理空间 */
-  min-height: 0;          /* 必须保留：允许按键变扁 */
   transition: all 0.1s ease;
   -webkit-user-select: none;
   user-select: none;
+  min-height: 0;
 }
 
 .key:active,
@@ -499,10 +502,7 @@ input[type="range"] {
   .keypad-area {
     gap: clamp(4px, 1dvh, 8px);
     padding-top: clamp(4px, 0.8dvh, 8px);
-    padding-bottom: max(env(safe-area-inset-bottom), 4px);
-  }
-  .key-row {
-    gap: clamp(4px, 1dvh, 8px);
+    padding-bottom: 4px;
   }
   .key {
     font-size: clamp(18px, 2.8dvh, 30px);
@@ -520,6 +520,7 @@ input[type="range"] {
   .keypad-area {
     gap: 6px;
     padding-top: 6px;
+    padding-bottom: 4px;
   }
   .key-row {
     gap: 6px;
@@ -562,17 +563,14 @@ input[type="range"] {
 
 /* ─── 看板模式：display 2倍高，其余不变 ─────────── */
 body.kanban .display-area {
-  flex-shrink: 1;
+  flex-shrink: 0;
 }
 
 body.kanban .display {
-  /* 核心：将固定 260px 改为屏幕高度的 38%，实现自适应 */
-  height: 38dvh;
-  min-height: 180px; 
-  flex-shrink: 1;    /* 允许在空间不足时收缩 */
+  height: 260px;
   justify-content: center;
-  align-items: center;
-  padding: 12px 25px;
+  align-items: center;    /* 居中 */
+  padding: 16px 25px;
 }
 
 body.kanban .display-label {
@@ -592,8 +590,12 @@ body.kanban .stats-box {
   gap: 8px;
 }
 
+body.kanban .last-num-display {
+  font-size: 18px;
+}
+
 body.kanban .time-ago-display {
-  font-size: clamp(16px, 3dvh, 26px);
+  font-size: 26px;
 }
 
 /* 看板模式历史磁贴：单行横向滚动，字体20px */
@@ -629,9 +631,7 @@ body.kanban .keypad-numrows > .key-row {
 body.kanban .keypad-area {
   flex: 1;
   min-height: 0;
-  padding: 6px 16px;
-  /* 同样强制预留高度，防止看板模式黑条 */
-  padding-bottom: calc(env(safe-area-inset-bottom) + 15px) !important;
+  padding: 6px 16px 10px 16px;
   gap: 8px;
   display: flex;
   flex-direction: column;
@@ -641,6 +641,8 @@ body.kanban .keypad-area {
 .key-row-normal {
   flex: 1;
   min-height: 0;
+  display: flex;
+  gap: clamp(6px, 1dvh, 12px);
 }
 
 .kanban-bottom-row {
