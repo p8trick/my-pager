@@ -228,36 +228,41 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: clamp(6px, 1dvh, 12px) 16px;
-  /* 强制预留出底部安全区+缓冲间距 */
+  padding: clamp(4px, 1dvh, 10px) 16px;
   padding-bottom: calc(env(safe-area-inset-bottom) + 15px) !important;
-  gap: clamp(6px, 1dvh, 12px);
-  min-height: 0;
+  gap: clamp(4px, 0.8dvh, 10px);
+  /* 关键修改：告诉浏览器，这个区域哪怕缩到 0 像素也不准溢出 */
+  min-height: 0; 
+  flex-shrink: 1;
 }
 
 .key-row {
   display: flex;
   gap: clamp(6px, 1dvh, 12px);
-  flex: 1;
-  min-height: 0;
+  /* 关键修改 */
+  flex: 1;        /* 每一行都尝试平分剩余高度 */
+  flex-basis: 0;  /* 初始高度设为 0，完全听从 Flex 分配 */
+  min-height: 0;  /* 允许行高度被挤压 */
 }
 
 .key {
   flex: 1;
+  flex-basis: 0;          /* 新增：强制初始高度为0，听从Flex压缩 */
   background: var(--key);
   border-radius: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: 'JetBrains Mono', monospace;
-  font-size: clamp(20px, 3.5dvh, 36px);
+  font-size: clamp(18px, 3.5dvh, 36px); /* 稍微调小最小字号防止顶爆 */
   color: #fff;
   border: none;
   cursor: pointer;
+  padding: 2px;           /* 新增：极小的内边距，给缩放留出物理空间 */
+  min-height: 0;          /* 必须保留：允许按键变扁 */
   transition: all 0.1s ease;
   -webkit-user-select: none;
   user-select: none;
-  min-height: 0;
 }
 
 .key:active,
