@@ -84,7 +84,7 @@ body {
 /* ─── Main Display ───────────────────────────────── */
 .display-area {
   padding: clamp(3px, 0.8dvh, 8px) 16px;
-  flex-shrink: 0;
+  flex-shrink: 1;
 }
 
 .display {
@@ -181,7 +181,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-shrink: 0;
+  flex-shrink: 1;
 }
 
 .history-label {
@@ -515,7 +515,6 @@ input[type="range"] {
   .keypad-area {
     gap: 6px;
     padding-top: 6px;
-    padding-bottom: max(env(safe-area-inset-bottom), 4px);
   }
   .key-row {
     gap: 6px;
@@ -558,7 +557,7 @@ input[type="range"] {
 
 /* ─── 看板模式：display 2倍高，其余不变 ─────────── */
 body.kanban .display-area {
-  flex-shrink: 0;
+  flex-shrink: 1;
 }
 
 body.kanban .display {
