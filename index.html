@@ -90,8 +90,9 @@ body {
 .display {
   background: var(--card);
   border-radius: 20px;
-  height: 130px;      /* 固定高度容纳110px字体，不压缩 */
-  flex-shrink: 0;
+  height: 18dvh;      /* 关键：改为屏幕比例，自动缩短 */
+  min-height: 100px;  /* 保证不低于 100px */
+  flex-shrink: 1;     /* 关键：允许被挤压 */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -168,7 +169,7 @@ body {
 
 .display-number {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 110px;   /* 锁死，不随屏幕缩放 */
+  font-size: clamp(60px, 12dvh, 110px); /* 关键：数字也随屏幕缩放 */
   color: var(--accent);
   text-align: right;
   line-height: 1;
@@ -561,10 +562,13 @@ body.kanban .display-area {
 }
 
 body.kanban .display {
-  height: 260px;
+  /* 核心：将固定 260px 改为屏幕高度的 38%，实现自适应 */
+  height: 38dvh;
+  min-height: 180px; 
+  flex-shrink: 1;    /* 允许在空间不足时收缩 */
   justify-content: center;
-  align-items: center;    /* 居中 */
-  padding: 16px 25px;
+  align-items: center;
+  padding: 12px 25px;
 }
 
 body.kanban .display-label {
