@@ -32,8 +32,7 @@
 
 /* ─── Layout ─────────────────────────────────────── */
 html, body {
-  height: 100%;
-  /* 桌面模式禁止任何滚动 */
+  height: -webkit-fill-available; /* 覆盖：强制 HTML 撑满 iOS 视口，解决黑条位移 */
   overflow: hidden;
   overscroll-behavior: none;
   position: fixed;
@@ -44,11 +43,11 @@ body {
   font-family: 'Outfit', sans-serif;
   background: var(--bg);
   color: var(--text);
-  height: 100dvh;
+  height: 100vh;      /* 覆盖：增加基础高度备份 */
+  height: 100dvh;     /* 覆盖：保持动态视口高度 */
   display: flex;
   flex-direction: column;
   padding-top: env(safe-area-inset-top);
-  /* 触摸滚动禁止 */
   touch-action: none;
 }
 
