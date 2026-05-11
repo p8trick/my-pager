@@ -878,14 +878,23 @@ body.kanban .key-row-normal {
     const now = Date.now();
     const isDoubleClick = (now - kanbanBtnLastClick) < 400;
     kanbanBtnLastClick = now;
+
     if (isDoubleClick) {
+      // 双击：任意状态直接跳 UI LOCKED
       clearTimeout(kanbanAutoTimer);
       setKanbanMode('ui-locked');
       return;
     }
-    const next = { 'auto': 'big-locked', 'big-locked': 'ui-locked', 'ui-locked': 'auto' };
-    clearTimeout(kanbanAutoTimer);
-    setKanbanMode(next[kanbanMode]);
+
+    if (kanbanMode === 'ui-locked') {
+      // UI LOCKED 单击：退回 AUTO
+      clearTimeout(kanbanAutoTimer);
+      setKanbanMode('auto');
+    } else {
+      // AUTO/BIG 单击：互相切换
+      clearTimeout(kanbanAutoTimer);
+      setKanbanMode(kanbanMode === 'auto' ? 'big-locked' : 'auto');
+    }
   }
 
   function triggerAutoKanban() {
