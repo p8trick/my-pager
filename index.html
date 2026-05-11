@@ -482,6 +482,19 @@ input[type="range"] {
   cursor: pointer;
 }
 
+.help-btn {
+  width: 100%;
+  padding: 12px;
+  background: none;
+  border: 1px solid #444;
+  color: #888;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
 .save-btn {
   width: 100%;
   padding: 18px;
@@ -492,6 +505,78 @@ input[type="range"] {
   color: #000;
   font-size: 18px;
   cursor: pointer;
+}
+.help-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: none;
+  z-index: 300;
+  flex-direction: column;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.help-overlay.show {
+  display: flex;
+}
+
+.help-header {
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #222;
+  flex-shrink: 0;
+}
+
+.help-header h2 {
+  font-size: 18px;
+  color: #888;
+}
+
+.help-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
+.help-section {
+  margin-bottom: 24px;
+}
+
+.help-section-title {
+  font-size: 11px;
+  font-weight: 900;
+  color: #555;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.help-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid #0d0d0d;
+}
+
+.help-key {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--accent);
+  flex-shrink: 0;
+  min-width: 80px;
+}
+
+.help-desc {
+  font-size: 13px;
+  color: #777;
+  line-height: 1.5;
 }
 /* ─── iPad 竖屏（≥1000px高）：键盘更舒适，号码不变 ── */
 @media (min-height: 1000px) {
@@ -826,8 +911,73 @@ body.kanban .key-row-normal {
         <label>DATA MANAGEMENT</label>
         <button class="reset-btn" id="resetBtn">🗑 RESET ALL LOGS & HISTORY</button>
       </div>
+      <button class="help-btn" id="helpBtn">📖 FEATURE GUIDE & KEY REFERENCE</button>
       <button class="save-btn" id="saveBtn">DONE</button>
     </div>
+  </div>
+
+  <!-- 说明面板 -->
+
+  <div class="help-overlay" id="helpOverlay">
+    <div class="help-header">
+      <h2>GUIDE V4.1</h2>
+      <button class="log-close-btn" id="helpCloseBtn">CLOSE</button>
+    </div>
+    <div class="help-content">
+
+```
+  <div class="help-section">
+    <div class="help-section-title">📟 DISPLAY</div>
+    <div class="help-row"><span class="help-key">LAST</span><span class="help-desc">上一次叫号的号码与时间间隔，点击可查看今日日志</span></div>
+    <div class="help-row"><span class="help-key">0m–29m</span><span class="help-desc">距上次叫号时间，绿→黄→红三色预警</span></div>
+    <div class="help-row"><span class="help-key">HH:MM</span><span class="help-desc">超过30分钟后显示上次叫号的实际时间</span></div>
+  </div>
+
+  <div class="help-section">
+    <div class="help-section-title">🔢 KEYPAD</div>
+    <div class="help-row"><span class="help-key">0–9</span><span class="help-desc">输入号码，最多3位，超出自动忽略</span></div>
+    <div class="help-row"><span class="help-key">CLR</span><span class="help-desc">清空输入；播报中按则中断播报</span></div>
+    <div class="help-row"><span class="help-key">PREV</span><span class="help-desc">当前号码 −1</span></div>
+    <div class="help-row"><span class="help-key">NEXT</span><span class="help-desc">当前号码 +1</span></div>
+    <div class="help-row"><span class="help-key">ANNOUNCE</span><span class="help-desc">播报当前号码，结束后自动 +1</span></div>
+  </div>
+
+  <div class="help-section">
+    <div class="help-section-title">⌨️ BLUETOOTH KEYBOARD</div>
+    <div class="help-row"><span class="help-key">0–9</span><span class="help-desc">盲打模式：第一键重置，后续追加；播报中输入不打断语音</span></div>
+    <div class="help-row"><span class="help-key">Enter</span><span class="help-desc">播报当前号码，防连发</span></div>
+    <div class="help-row"><span class="help-key">+ / =</span><span class="help-desc">号码 +1</span></div>
+    <div class="help-row"><span class="help-key">−</span><span class="help-desc">号码 −1</span></div>
+    <div class="help-row"><span class="help-key">Backspace</span><span class="help-desc">清空 / 中断播报</span></div>
+    <div class="help-row"><span class="help-key">Esc</span><span class="help-desc">关闭日志或设置面板</span></div>
+  </div>
+
+  <div class="help-section">
+    <div class="help-section-title">⌨️ BIG MODE 按钮</div>
+    <div class="help-row"><span class="help-key" style="color:#444">AUTO</span><span class="help-desc">自动模式：物理键盘输入时自动切换大字模式，30分钟无输入恢复</span></div>
+    <div class="help-row"><span class="help-key" style="color:var(--history)">BIG</span><span class="help-desc">单击切换：大字模式与AUTO互相切换</span></div>
+    <div class="help-row"><span class="help-key" style="color:var(--accent)">🔒 UI</span><span class="help-desc">双击锁定：强制保持软键盘UI，物理键盘不触发模式切换</span></div>
+  </div>
+
+  <div class="help-section">
+    <div class="help-section-title">📋 RECENT LOG</div>
+    <div class="help-row"><span class="help-key">#XX</span><span class="help-desc">点击磁贴可重新播报该号码，不计入日志统计</span></div>
+  </div>
+
+  <div class="help-section">
+    <div class="help-section-title">📊 DAILY LOG</div>
+    <div class="help-row"><span class="help-key">间隔色</span><span class="help-desc">绿色 &lt;5m / 黄色 5–10m / 红色 &gt;10m</span></div>
+    <div class="help-row"><span class="help-key">平均值</span><span class="help-desc">仅统计1–20分钟内的有效间隔，过滤休息时段</span></div>
+  </div>
+
+  <div class="help-section">
+    <div class="help-section-title">🔋 防息屏</div>
+    <div class="help-row"><span class="help-key">双保险</span><span class="help-desc">Wake Lock API + 静默视频循环，确保iPad/iPhone不息屏</span></div>
+  </div>
+
+</div>
+```
+
   </div>
 
 <script>
@@ -1303,6 +1453,13 @@ body.kanban .key-row-normal {
   document.getElementById('goBtn').addEventListener('click', () => announce());
   document.getElementById('statsBox').addEventListener('click', openLogOverlay);
   document.getElementById('logCloseBtn').addEventListener('click', closeLogOverlay);
+  document.getElementById('helpBtn').addEventListener('click', () => {
+    document.getElementById('helpOverlay').classList.add('show');
+  });
+  document.getElementById('helpCloseBtn').addEventListener('click', () => {
+    document.getElementById('helpOverlay').classList.remove('show');
+  });
+
   document.getElementById('settingsBtn').addEventListener('click', toggleSettings);
   document.getElementById('saveBtn').addEventListener('click', saveAndClose);
   document.getElementById('testVoiceBtn').addEventListener('click', testVoice);
