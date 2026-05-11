@@ -33,6 +33,7 @@
 /* ─── Layout ─────────────────────────────────────── */
 html {
   height: 100%;
+  height: -webkit-fill-available;
   overflow: hidden;
   overscroll-behavior: none;
 }
@@ -55,13 +56,10 @@ body {
   box-sizing: border-box;
 }
 
-/* PWA模式专用：JS会在body加上pwa class */
+/* PWA模式专用：强制填满含安全区的全部可视高度 */
 body.pwa {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  height: 100dvh;
+  min-height: -webkit-fill-available;
 }
 
 /* 让滚动区域（日志面板内容）局部恢复 */
