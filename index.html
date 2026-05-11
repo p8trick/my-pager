@@ -41,10 +41,8 @@ body {
   font-family: 'Outfit', sans-serif;
   background: var(--bg);
   color: var(--text);
-  /* PWA模式用 stretch 填满整个屏幕包含安全区 */
-  width: 100vw;
-  height: 100vh;
-  /* 用padding而不是position:fixed来处理安全区 */
+  width: 100%;
+  height: 100dvh;
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
@@ -53,12 +51,17 @@ body {
   flex-direction: column;
   overflow: hidden;
   overscroll-behavior: none;
+  touch-action: none;
+  box-sizing: border-box;
+}
+
+/* PWA模式专用：JS会在body加上pwa class */
+body.pwa {
   position: fixed;
   top: 0;
   left: 0;
-  /* 触摸滚动禁止 */
-  touch-action: none;
-  box-sizing: border-box;
+  width: 100vw;
+  height: 100vh;
 }
 
 /* 让滚动区域（日志面板内容）局部恢复 */
@@ -1322,6 +1325,12 @@ body.kanban .key-row-normal {
   });
 
   // ─── 初始化 ───────────────────────────────────────────
+  // PWA模式检测：只在桌面app模式下加 position:fixed
+  if (window.navigator.standalone === true ||
+      window.matchMedia('(display-mode: standalone)').matches) {
+    document.body.classList.add('pwa');
+  }
+
   window.speechSynthesis.onvoiceschanged = initVoices;
   loadSettings();
   initVoices();
