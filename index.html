@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Order Terminal V4.2</title>
+  <title>Order Terminal V4.1.1</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
   <style>
     /* ─── Design Tokens ─────────────────────────────── */
@@ -677,8 +677,6 @@
       flex-direction: row;
       align-items: center;
       gap: 8px;
-      border-left: none;
-      padding-left: 0;
     }
 
     body.kanban .last-num-display {
@@ -803,7 +801,7 @@
 
   <!-- 顶部标题栏 -->
   <header class="header">
-    <h1>ORDER TERMINAL V4.2</h1>
+    <h1>ORDER TERMINAL V4.1.1</h1>
     <div style="display:flex; gap:8px;">
       <button id="kanbanBtn">⌨️ AUTO</button>
       <button id="settingsBtn">SETTINGS</button>
@@ -816,7 +814,7 @@
       <div class="stats-box" id="statsBox">
         <div class="last-label">LAST</div>
         <div class="last-num-display" id="lastNumLabel">#--</div>
-        <div class="time-ago-display" id="timeDisplay" style="color:#444">--</div>
+        <div class="time-ago-display" id="timeDisplay">0m</div>
       </div>
       <div class="display-label">READY TO SERVE</div>
       <div class="display-number" id="displayNum">—</div>
@@ -889,10 +887,6 @@
         <label>Voice Engine</label>
         <select id="voiceSelect"></select>
         <button class="test-btn" id="testVoiceBtn">🔊 TEST VOICE & DING</button>
-      </div>
-      <div class="setting-item">
-        <label>Ding Volume: <span id="dingVal">0.35</span></label>
-        <input type="range" id="dingRange" min="0" max="1" step="0.05" value="0.35">
       </div>
       <div class="setting-item">
         <label>Repeat: <span id="repeatVal">2</span> Times</label>
@@ -1091,9 +1085,6 @@
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
 
-    const vol = parseFloat(document.getElementById('dingRange').value);
-    if (vol === 0) return;  // 静音直接跳过
-
     const now = audioCtx.currentTime;
     const dur = 0.55;
 
@@ -1101,7 +1092,7 @@
     const g1   = audioCtx.createGain();
     osc1.type = 'sine';
     osc1.frequency.value = 830;
-    g1.gain.setValueAtTime(vol, now);
+    g1.gain.setValueAtTime(0.35, now);
     g1.gain.exponentialRampToValueAtTime(0.001, now + dur);
     osc1.connect(g1).connect(audioCtx.destination);
 
@@ -1109,7 +1100,7 @@
     const g2   = audioCtx.createGain();
     osc2.type = 'sine';
     osc2.frequency.value = 1245;
-    g2.gain.setValueAtTime(vol * 0.57, now);
+    g2.gain.setValueAtTime(0.2, now);
     g2.gain.exponentialRampToValueAtTime(0.001, now + dur * 0.7);
     osc2.connect(g2).connect(audioCtx.destination);
 
@@ -1377,20 +1368,16 @@
   function loadSettings() {
     const savedRepeat = localStorage.getItem('repeat') || 2;
     const savedSpeed  = localStorage.getItem('speed')  || 1.0;
-    const savedDing   = localStorage.getItem('ding')   || 0.35;
     document.getElementById('repeatRange').value       = savedRepeat;
     document.getElementById('repeatVal').textContent   = savedRepeat;
     document.getElementById('speedRange').value        = savedSpeed;
     document.getElementById('speedVal').textContent    = savedSpeed;
-    document.getElementById('dingRange').value         = savedDing;
-    document.getElementById('dingVal').textContent     = savedDing;
   }
 
   function saveAndClose() {
     localStorage.setItem('repeat',    document.getElementById('repeatRange').value);
     localStorage.setItem('speed',     document.getElementById('speedRange').value);
     localStorage.setItem('voiceName', document.getElementById('voiceSelect').value);
-    localStorage.setItem('ding',      document.getElementById('dingRange').value);
     toggleSettings();
   }
 
@@ -1405,8 +1392,8 @@
     document.getElementById('displayNum').textContent    = '—';
     document.getElementById('lastNumLabel').textContent  = '#--';
     const timeEl = document.getElementById('timeDisplay');
-    timeEl.textContent = '--';
-    timeEl.style.color = '#444';
+    timeEl.textContent = '0m';
+    timeEl.style.color = 'var(--history)';
 
     renderHistory();
     toggleSettings();
@@ -1471,10 +1458,6 @@
   document.getElementById('saveBtn').addEventListener('click', saveAndClose);
   document.getElementById('testVoiceBtn').addEventListener('click', testVoice);
   document.getElementById('resetBtn').addEventListener('click', resetDayData);
-
-  document.getElementById('dingRange').addEventListener('input', e => {
-    document.getElementById('dingVal').textContent = e.target.value;
-  });
 
   document.getElementById('repeatRange').addEventListener('input', e => {
     document.getElementById('repeatVal').textContent = e.target.value;
