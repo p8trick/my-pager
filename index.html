@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Order Terminal V4.3</title>
+  <title>Order Terminal V4.2</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
   <style>
     /* ─── Design Tokens ─────────────────────────────── */
@@ -407,10 +407,9 @@
       background: rgba(0, 0, 0, 0.95);
       display: none;
       z-index: 100;
-      padding: max(40px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      touch-action: pan-y;
+      padding: 40px 20px;
+      padding-top: max(40px, env(safe-area-inset-top));
+      padding-bottom: max(20px, env(safe-area-inset-bottom));
     }
 
     .settings-overlay.show {
@@ -804,7 +803,7 @@
 
   <!-- 顶部标题栏 -->
   <header class="header">
-    <h1>ORDER TERMINAL V4.3</h1>
+    <h1>ORDER TERMINAL V4.2</h1>
     <div style="display:flex; gap:8px;">
       <button id="kanbanBtn">⌨️ AUTO</button>
       <button id="settingsBtn">SETTINGS</button>
@@ -1247,37 +1246,6 @@
     });
   }
 
-  // ─── 数字转分组口语读法 ──────────────────────────────
-  // 1位/2位：直接交给语音引擎自然读
-  // 3位：拆成"百位 + 后两位"分组读，最像真人叫号
-  const ones = ['', 'one', 'two', 'three', 'four', 'five',
-                 'six', 'seven', 'eight', 'nine'];
-  const teens = ['ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen',
-                 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
-  const tens  = ['', '', 'twenty', 'thirty', 'forty', 'fifty',
-                 'sixty', 'seventy', 'eighty', 'ninety'];
-
-  function twoDigitWord(n) {
-    if (n === 0)       return 'zero';
-    if (n < 10)        return ones[n];
-    if (n < 20)        return teens[n - 10];
-    const t = Math.floor(n / 10);
-    const o = n % 10;
-    return o === 0 ? tens[t] : `${tens[t]} ${ones[o]}`;
-  }
-
-  function numberToSpoken(numStr) {
-    const n = parseInt(numStr, 10);
-    if (n < 100) return String(n);  // 1-2位直接给引擎读
-    // 3位：百位 + 后两位
-    const hundred = Math.floor(n / 100);
-    const remainder = n % 100;
-    const hundredWord = ones[hundred];
-    if (remainder === 0) return `${hundredWord} hundred`;
-    if (remainder < 10)  return `${hundredWord} oh ${ones[remainder]}`;
-    return `${hundredWord} ${twoDigitWord(remainder)}`;
-  }
-
   // ─── 播报核心 ─────────────────────────────────────────
   function announce(fromHistoryValue = null, chipElement = null) {
     startAntiSleep();
@@ -1325,7 +1293,7 @@
       await new Promise(r => setTimeout(r, 650));
       if (isAborted) return;
 
-      const utter = new SpeechSynthesisUtterance(`Order number ${numberToSpoken(numToSay)}`);
+      const utter = new SpeechSynthesisUtterance(`Order number ${numToSay}`);
       utter.voice = window.speechSynthesis.getVoices().find(v => v.name === voiceName);
       utter.rate  = speed;
       utter.onend = () => {
@@ -1465,7 +1433,7 @@
     startAntiSleep();
     playDing();
     setTimeout(() => {
-      const utter = new SpeechSynthesisUtterance(`Order number ${numberToSpoken('618')}`);
+      const utter = new SpeechSynthesisUtterance('Order number 42');
       utter.voice = window.speechSynthesis.getVoices().find(
         v => v.name === document.getElementById('voiceSelect').value
       );
