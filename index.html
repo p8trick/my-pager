@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Order Terminal V4.1</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Order Terminal V4.3</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
   <style>
     /* ─── Design Tokens ─────────────────────────────── */
@@ -54,7 +57,7 @@
       box-sizing: border-box;
     }
 
-    /* PWA模式专用：强制填满含安全区的全部可视高度 */
+    /* PWA模式：用-webkit-fill-available精确填满，不额外加padding-bottom */
     body.pwa {
       height: 100dvh;
       min-height: -webkit-fill-available;
@@ -319,6 +322,8 @@
       display: none;
       z-index: 200;
       flex-direction: column;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
     }
 
     .log-overlay.show {
@@ -405,7 +410,10 @@
       background: rgba(0, 0, 0, 0.95);
       display: none;
       z-index: 100;
-      padding: 40px 20px;
+      padding: max(40px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
     }
 
     .settings-overlay.show {
@@ -476,6 +484,19 @@
       cursor: pointer;
     }
 
+    .help-btn {
+      width: 100%;
+      padding: 12px;
+      background: none;
+      border: 1px solid #444;
+      color: #888;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 12px;
+    }
+
     .save-btn {
       width: 100%;
       padding: 18px;
@@ -486,6 +507,78 @@
       color: #000;
       font-size: 18px;
       cursor: pointer;
+    }
+    .help-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: none;
+      z-index: 300;
+      flex-direction: column;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .help-overlay.show {
+      display: flex;
+    }
+
+    .help-header {
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #222;
+      flex-shrink: 0;
+    }
+
+    .help-header h2 {
+      font-size: 18px;
+      color: #888;
+    }
+
+    .help-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+    }
+
+    .help-section {
+      margin-bottom: 24px;
+    }
+
+    .help-section-title {
+      font-size: 11px;
+      font-weight: 900;
+      color: #555;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #1a1a1a;
+    }
+
+    .help-row {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      padding: 7px 0;
+      border-bottom: 1px solid #0d0d0d;
+    }
+
+    .help-key {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--accent);
+      flex-shrink: 0;
+      min-width: 80px;
+    }
+
+    .help-desc {
+      font-size: 13px;
+      color: #777;
+      line-height: 1.5;
     }
     /* ─── iPad 竖屏（≥1000px高）：键盘更舒适，号码不变 ── */
     @media (min-height: 1000px) {
@@ -588,6 +681,8 @@
       flex-direction: row;
       align-items: center;
       gap: 8px;
+      border-left: none;
+      padding-left: 0;
     }
 
     body.kanban .last-num-display {
@@ -712,7 +807,7 @@
 
   <!-- 顶部标题栏 -->
   <header class="header">
-    <h1>ORDER TERMINAL V4.1</h1>
+    <h1>ORDER TERMINAL V4.3</h1>
     <div style="display:flex; gap:8px;">
       <button id="kanbanBtn">⌨️ AUTO</button>
       <button id="settingsBtn">SETTINGS</button>
@@ -725,7 +820,7 @@
       <div class="stats-box" id="statsBox">
         <div class="last-label">LAST</div>
         <div class="last-num-display" id="lastNumLabel">#--</div>
-        <div class="time-ago-display" id="timeDisplay">0m</div>
+        <div class="time-ago-display" id="timeDisplay" style="color:#444">--</div>
       </div>
       <div class="display-label">READY TO SERVE</div>
       <div class="display-number" id="displayNum">—</div>
@@ -800,6 +895,10 @@
         <button class="test-btn" id="testVoiceBtn">🔊 TEST VOICE & DING</button>
       </div>
       <div class="setting-item">
+        <label>Ding Volume: <span id="dingVal">0.35</span></label>
+        <input type="range" id="dingRange" min="0" max="1" step="0.05" value="0.35">
+      </div>
+      <div class="setting-item">
         <label>Repeat: <span id="repeatVal">2</span> Times</label>
         <input type="range" id="repeatRange" min="1" max="5" value="2">
       </div>
@@ -811,7 +910,68 @@
         <label>DATA MANAGEMENT</label>
         <button class="reset-btn" id="resetBtn">🗑 RESET ALL LOGS & HISTORY</button>
       </div>
+      <button class="help-btn" id="helpBtn">📖 FEATURE GUIDE & KEY REFERENCE</button>
       <button class="save-btn" id="saveBtn">DONE</button>
+    </div>
+  </div>
+
+  <!-- 说明面板 -->
+  <div class="help-overlay" id="helpOverlay">
+    <div class="help-header">
+      <h2>GUIDE V4.1</h2>
+      <button class="log-close-btn" id="helpCloseBtn">CLOSE</button>
+    </div>
+    <div class="help-content">
+
+      <div class="help-section">
+        <div class="help-section-title">📟 DISPLAY</div>
+        <div class="help-row"><span class="help-key">LAST</span><span class="help-desc">上一次叫号的号码与时间间隔，点击可查看今日日志</span></div>
+        <div class="help-row"><span class="help-key">0m–29m</span><span class="help-desc">距上次叫号时间，绿→黄→红三色预警</span></div>
+        <div class="help-row"><span class="help-key">HH:MM</span><span class="help-desc">超过30分钟后显示上次叫号的实际时间</span></div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-title">🔢 KEYPAD</div>
+        <div class="help-row"><span class="help-key">0–9</span><span class="help-desc">输入号码，最多3位，超出自动忽略</span></div>
+        <div class="help-row"><span class="help-key">CLR</span><span class="help-desc">清空输入；播报中按则中断播报</span></div>
+        <div class="help-row"><span class="help-key">PREV</span><span class="help-desc">当前号码 −1</span></div>
+        <div class="help-row"><span class="help-key">NEXT</span><span class="help-desc">当前号码 +1</span></div>
+        <div class="help-row"><span class="help-key">ANNOUNCE</span><span class="help-desc">播报当前号码，结束后自动 +1</span></div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-title">⌨️ BLUETOOTH KEYBOARD</div>
+        <div class="help-row"><span class="help-key">0–9</span><span class="help-desc">盲打模式：第一键重置，后续追加；播报中输入不打断语音</span></div>
+        <div class="help-row"><span class="help-key">Enter</span><span class="help-desc">播报当前号码，防连发</span></div>
+        <div class="help-row"><span class="help-key">+ / =</span><span class="help-desc">号码 +1</span></div>
+        <div class="help-row"><span class="help-key">−</span><span class="help-desc">号码 −1</span></div>
+        <div class="help-row"><span class="help-key">Backspace</span><span class="help-desc">清空 / 中断播报</span></div>
+        <div class="help-row"><span class="help-key">Esc</span><span class="help-desc">关闭日志或设置面板</span></div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-title">⌨️ BIG MODE 按钮</div>
+        <div class="help-row"><span class="help-key" style="color:#444">AUTO</span><span class="help-desc">自动模式：物理键盘输入时自动切换大字模式，30分钟无输入恢复</span></div>
+        <div class="help-row"><span class="help-key" style="color:var(--history)">BIG</span><span class="help-desc">单击切换：大字模式与AUTO互相切换</span></div>
+        <div class="help-row"><span class="help-key" style="color:var(--accent)">🔒 UI</span><span class="help-desc">双击锁定：强制保持软键盘UI，物理键盘不触发模式切换</span></div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-title">📋 RECENT LOG</div>
+        <div class="help-row"><span class="help-key">#XX</span><span class="help-desc">点击磁贴可重新播报该号码，不计入日志统计</span></div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-title">📊 DAILY LOG</div>
+        <div class="help-row"><span class="help-key">间隔色</span><span class="help-desc">绿色 &lt;5m / 黄色 5–10m / 红色 &gt;10m</span></div>
+        <div class="help-row"><span class="help-key">平均值</span><span class="help-desc">仅统计1–20分钟内的有效间隔，过滤休息时段</span></div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-title">🔋 防息屏</div>
+        <div class="help-row"><span class="help-key">双保险</span><span class="help-desc">Wake Lock API + 静默视频循环，确保iPad/iPhone不息屏</span></div>
+      </div>
+
     </div>
   </div>
 
@@ -863,14 +1023,23 @@
     const now = Date.now();
     const isDoubleClick = (now - kanbanBtnLastClick) < 400;
     kanbanBtnLastClick = now;
+
     if (isDoubleClick) {
+      // 双击：任意状态直接跳 UI LOCKED
       clearTimeout(kanbanAutoTimer);
       setKanbanMode('ui-locked');
       return;
     }
-    const next = { 'auto': 'big-locked', 'big-locked': 'ui-locked', 'ui-locked': 'auto' };
-    clearTimeout(kanbanAutoTimer);
-    setKanbanMode(next[kanbanMode]);
+
+    if (kanbanMode === 'ui-locked') {
+      // UI LOCKED 单击：退回 AUTO
+      clearTimeout(kanbanAutoTimer);
+      setKanbanMode('auto');
+    } else {
+      // AUTO/BIG 单击：互相切换
+      clearTimeout(kanbanAutoTimer);
+      setKanbanMode(kanbanMode === 'auto' ? 'big-locked' : 'auto');
+    }
   }
 
   function triggerAutoKanban() {
@@ -926,6 +1095,9 @@
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
 
+    const vol = parseFloat(document.getElementById('dingRange').value);
+    if (vol === 0) return;  // 静音直接跳过
+
     const now = audioCtx.currentTime;
     const dur = 0.55;
 
@@ -933,7 +1105,7 @@
     const g1   = audioCtx.createGain();
     osc1.type = 'sine';
     osc1.frequency.value = 830;
-    g1.gain.setValueAtTime(0.35, now);
+    g1.gain.setValueAtTime(vol, now);
     g1.gain.exponentialRampToValueAtTime(0.001, now + dur);
     osc1.connect(g1).connect(audioCtx.destination);
 
@@ -941,12 +1113,22 @@
     const g2   = audioCtx.createGain();
     osc2.type = 'sine';
     osc2.frequency.value = 1245;
-    g2.gain.setValueAtTime(0.2, now);
+    g2.gain.setValueAtTime(vol * 0.57, now);
     g2.gain.exponentialRampToValueAtTime(0.001, now + dur * 0.7);
     osc2.connect(g2).connect(audioCtx.destination);
 
     osc1.start(now); osc2.start(now);
     osc1.stop(now + dur); osc2.stop(now + dur);
+  }
+
+  // ─── 共用颜色逻辑 ─────────────────────────────────────
+  // 适用于计时器显示和日志条目
+  function intervalColor(min) {
+    if (min === 0)       return '#ffffff';          // 0m 白色
+    if (min <= 5)        return 'var(--history)';   // 1–5m 绿色
+    if (min <= 10)       return '#FFD60A';           // 6–10m 黄色
+    if (min <= 20)       return 'var(--danger)';    // 11–20m 红色
+    return '#444';                                   // 21m+ 灰色
   }
 
   // ─── 显示 ─────────────────────────────────────────────
@@ -959,12 +1141,13 @@
     if (!lastCallTimestamp) return;
     const diffMin = Math.floor((Date.now() - lastCallTimestamp) / 60000);
     const el = document.getElementById('timeDisplay');
-    if (diffMin >= 30) {
+    if (diffMin >= 31) {
+      // 第31分钟起显示固定时间，灰色
       el.textContent = lastCallTimeString;
       el.style.color = '#444';
     } else {
       el.textContent = diffMin + 'm';
-      el.style.color = diffMin >= 10 ? 'var(--danger)' : diffMin >= 5 ? '#FFD60A' : 'var(--history)';
+      el.style.color = intervalColor(diffMin);
     }
   }
 
@@ -1067,6 +1250,37 @@
     });
   }
 
+  // ─── 数字转分组口语读法 ──────────────────────────────
+  // 1位/2位：直接交给语音引擎自然读
+  // 3位：拆成"百位 + 后两位"分组读，最像真人叫号
+  const ones = ['', 'one', 'two', 'three', 'four', 'five',
+                 'six', 'seven', 'eight', 'nine'];
+  const teens = ['ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen',
+                 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+  const tens  = ['', '', 'twenty', 'thirty', 'forty', 'fifty',
+                 'sixty', 'seventy', 'eighty', 'ninety'];
+
+  function twoDigitWord(n) {
+    if (n === 0)       return 'zero';
+    if (n < 10)        return ones[n];
+    if (n < 20)        return teens[n - 10];
+    const t = Math.floor(n / 10);
+    const o = n % 10;
+    return o === 0 ? tens[t] : `${tens[t]} ${ones[o]}`;
+  }
+
+  function numberToSpoken(numStr) {
+    const n = parseInt(numStr, 10);
+    if (n < 100) return String(n);  // 1-2位直接给引擎读
+    // 3位：百位 + 后两位
+    const hundred = Math.floor(n / 100);
+    const remainder = n % 100;
+    const hundredWord = ones[hundred];
+    if (remainder === 0) return `${hundredWord} hundred`;
+    if (remainder < 10)  return `${hundredWord} oh ${ones[remainder]}`;
+    return `${hundredWord} ${twoDigitWord(remainder)}`;
+  }
+
   // ─── 播报核心 ─────────────────────────────────────────
   function announce(fromHistoryValue = null, chipElement = null) {
     startAntiSleep();
@@ -1114,7 +1328,7 @@
       await new Promise(r => setTimeout(r, 650));
       if (isAborted) return;
 
-      const utter = new SpeechSynthesisUtterance(`Order number ${numToSay}`);
+      const utter = new SpeechSynthesisUtterance(`Order number ${numberToSpoken(numToSay)}`);
       utter.voice = window.speechSynthesis.getVoices().find(v => v.name === voiceName);
       utter.rate  = speed;
       utter.onend = () => {
@@ -1173,9 +1387,7 @@
     let total = 0, count = 0;
 
     callLog.slice().reverse().forEach(item => {
-      const gapColor =
-        item.interval >= 10 ? 'var(--danger)' :
-        item.interval >= 5  ? '#FFD60A'       : 'var(--history)';
+      const gapColor = intervalColor(item.interval);
 
       const row = document.createElement('div');
       row.className = 'log-item';
@@ -1200,16 +1412,20 @@
   function loadSettings() {
     const savedRepeat = localStorage.getItem('repeat') || 2;
     const savedSpeed  = localStorage.getItem('speed')  || 1.0;
+    const savedDing   = localStorage.getItem('ding')   || 0.35;
     document.getElementById('repeatRange').value       = savedRepeat;
     document.getElementById('repeatVal').textContent   = savedRepeat;
     document.getElementById('speedRange').value        = savedSpeed;
     document.getElementById('speedVal').textContent    = savedSpeed;
+    document.getElementById('dingRange').value         = savedDing;
+    document.getElementById('dingVal').textContent     = savedDing;
   }
 
   function saveAndClose() {
     localStorage.setItem('repeat',    document.getElementById('repeatRange').value);
     localStorage.setItem('speed',     document.getElementById('speedRange').value);
     localStorage.setItem('voiceName', document.getElementById('voiceSelect').value);
+    localStorage.setItem('ding',      document.getElementById('dingRange').value);
     toggleSettings();
   }
 
@@ -1224,8 +1440,8 @@
     document.getElementById('displayNum').textContent    = '—';
     document.getElementById('lastNumLabel').textContent  = '#--';
     const timeEl = document.getElementById('timeDisplay');
-    timeEl.textContent = '0m';
-    timeEl.style.color = 'var(--history)';
+    timeEl.textContent = '--';
+    timeEl.style.color = '#444';
 
     renderHistory();
     toggleSettings();
@@ -1252,7 +1468,7 @@
     startAntiSleep();
     playDing();
     setTimeout(() => {
-      const utter = new SpeechSynthesisUtterance('Order number 42');
+      const utter = new SpeechSynthesisUtterance(`Order number ${numberToSpoken('618')}`);
       utter.voice = window.speechSynthesis.getVoices().find(
         v => v.name === document.getElementById('voiceSelect').value
       );
@@ -1279,10 +1495,21 @@
   document.getElementById('goBtn').addEventListener('click', () => announce());
   document.getElementById('statsBox').addEventListener('click', openLogOverlay);
   document.getElementById('logCloseBtn').addEventListener('click', closeLogOverlay);
+  document.getElementById('helpBtn').addEventListener('click', () => {
+    document.getElementById('helpOverlay').classList.add('show');
+  });
+  document.getElementById('helpCloseBtn').addEventListener('click', () => {
+    document.getElementById('helpOverlay').classList.remove('show');
+  });
+
   document.getElementById('settingsBtn').addEventListener('click', toggleSettings);
   document.getElementById('saveBtn').addEventListener('click', saveAndClose);
   document.getElementById('testVoiceBtn').addEventListener('click', testVoice);
   document.getElementById('resetBtn').addEventListener('click', resetDayData);
+
+  document.getElementById('dingRange').addEventListener('input', e => {
+    document.getElementById('dingVal').textContent = e.target.value;
+  });
 
   document.getElementById('repeatRange').addEventListener('input', e => {
     document.getElementById('repeatVal').textContent = e.target.value;
