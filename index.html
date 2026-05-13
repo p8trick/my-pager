@@ -56,10 +56,10 @@
       box-sizing: border-box;
     }
 
-    /* PWA模式：-webkit-fill-available精确处理底部，顶部已由padding-top处理 */
+    /* PWA模式：移除高度限制，让系统自然填满 */
     body.pwa {
-      height: -webkit-fill-available;
-      min-height: -webkit-fill-available;
+      height: 100%;
+      min-height: 100%;
     }
 
     /* 让滚动区域（日志面板内容）局部恢复 */
