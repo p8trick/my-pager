@@ -8,7 +8,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Order Terminal V4.3.2</title>
+  <title>Order Terminal V4.3.3</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
   <style>
     /* ─── Design Tokens ─────────────────────────────── */
@@ -311,6 +311,8 @@
       z-index: 200;
       flex-direction: column;
       padding-top: env(safe-area-inset-top);
+      box-sizing: border-box;
+      overflow: hidden;
     }
 
     .log-overlay.show {
@@ -446,6 +448,21 @@
       font-size: 16px;
     }
 
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      background: #000;
+      color: #fff;
+      border: 1px solid #333;
+      border-radius: 10px;
+      font-size: 16px;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    input[type="text"]::placeholder {
+      color: #444;
+    }
+
     .test-btn {
       margin-top: 10px;
       width: 100%;
@@ -504,6 +521,8 @@
       z-index: 300;
       flex-direction: column;
       padding-top: env(safe-area-inset-top);
+      box-sizing: border-box;
+      overflow: hidden;
     }
 
     .help-overlay.show {
@@ -794,7 +813,7 @@
 
   <!-- 顶部标题栏 -->
   <header class="header">
-    <h1>ORDER TERMINAL V4.3.2</h1>
+    <h1>ORDER TERMINAL V4.3.3</h1>
     <div style="display:flex; gap:8px;">
       <button id="kanbanBtn">⌨️ AUTO</button>
       <button id="settingsBtn">SETTINGS</button>
@@ -882,6 +901,14 @@
         <button class="test-btn" id="testVoiceBtn">🔊 TEST VOICE & DING</button>
       </div>
       <div class="setting-item">
+        <label>Announce Prefix（数字前）</label>
+        <input type="text" id="announcePrefix" placeholder="e.g. 请取餐，号码 / Order number" autocomplete="off">
+      </div>
+      <div class="setting-item">
+        <label>Announce Suffix（数字后）</label>
+        <input type="text" id="announceSuffix" placeholder="e.g. 号，谢谢 / please" autocomplete="off">
+      </div>
+      <div class="setting-item">
         <label>Ding Volume: <span id="dingVal">0.35</span></label>
         <input type="range" id="dingRange" min="0" max="1" step="0.05" value="0.35">
       </div>
@@ -905,7 +932,7 @@
   <!-- 说明面板 -->
   <div class="help-overlay" id="helpOverlay">
     <div class="help-header">
-      <h2>GUIDE V4.1</h2>
+      <h2>GUIDE V4.3.3</h2>
       <button class="log-close-btn" id="helpCloseBtn">CLOSE</button>
     </div>
     <div class="help-content">
@@ -918,7 +945,18 @@
       </div>
 
       <div class="help-section">
-        <div class="help-section-title">🔢 KEYPAD</div>
+        <div class="help-section-title">🔊 ANNOUNCE 自定义播报</div>
+        <div class="help-row"><span class="help-key">前缀</span><span class="help-desc">数字前的文字，例如「请取餐，号码」或「Order number」</span></div>
+        <div class="help-row"><span class="help-key">后缀</span><span class="help-desc">数字后的文字，例如「号，谢谢」或「please」，不填则念完数字即止</span></div>
+        <div class="help-row"><span class="help-key">语言匹配</span><span class="help-desc">数字读法自动跟随语音引擎语言：中文→逐字（六一八），英文→分组（six eighteen）</span></div>
+        <div class="help-row"><span class="help-key">默认</span><span class="help-desc">前后缀均空时保持原有英文格式「Order number six eighteen」</span></div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-title">🎙 VOICE ENGINE</div>
+        <div class="help-row"><span class="help-key">引擎</span><span class="help-desc">选择任意系统语音，影响口音和音色，不影响播报文字内容</span></div>
+        <div class="help-row"><span class="help-key">TEST</span><span class="help-desc">测试当前语音设置，播报示例号码 618</span></div>
+      </div>
         <div class="help-row"><span class="help-key">0–9</span><span class="help-desc">输入号码，最多3位，超出自动忽略</span></div>
         <div class="help-row"><span class="help-key">CLR</span><span class="help-desc">清空输入；播报中按则中断播报</span></div>
         <div class="help-row"><span class="help-key">PREV</span><span class="help-desc">当前号码 −1</span></div>
@@ -1237,7 +1275,42 @@
     });
   }
 
-  // ─── 数字转分组口语读法 ──────────────────────────────
+  // ─── 数字转中文逐字读法 ───────────────────────────────
+  function numberToSpokenZH(numStr) {
+    const map = {'0':'零','1':'一','2':'二','3':'三','4':'四',
+                 '5':'五','6':'六','7':'七','8':'八','9':'九'};
+    return numStr.split('').map(d => map[d]).join('');
+  }
+
+  // ─── 组装播报文本 ─────────────────────────────────────
+  // 根据语音lang和前后缀设置决定最终念出的文字
+  function buildAnnounceText(numStr) {
+    const prefix = (localStorage.getItem('announcePrefix') || '').trim();
+    const suffix = (localStorage.getItem('announceSuffix') || '').trim();
+    const voiceName = document.getElementById('voiceSelect').value;
+    const voice = window.speechSynthesis.getVoices().find(v => v.name === voiceName);
+    const lang = voice ? voice.lang : 'en';
+
+    // 根据语言决定数字读法
+    let numSpoken;
+    if (lang.startsWith('zh') || lang.startsWith('yue')) {
+      numSpoken = numberToSpokenZH(numStr);
+    } else if (lang.startsWith('en') || (!prefix && !suffix)) {
+      numSpoken = numberToSpoken(numStr);   // 现有英文分组读法
+    } else {
+      numSpoken = numStr;  // 其他语言直接传数字让引擎处理
+    }
+
+    // 组装：有前缀用前缀，没有且没后缀用默认英文格式
+    if (!prefix && !suffix) {
+      return `Order number ${numSpoken}`;
+    }
+    const parts = [];
+    if (prefix) parts.push(prefix);
+    parts.push(numSpoken);
+    if (suffix) parts.push(suffix);
+    return parts.join(' ');
+  }
   // 1位/2位：直接交给语音引擎自然读
   // 3位：拆成"百位 + 后两位"分组读，最像真人叫号
   const ones = ['', 'one', 'two', 'three', 'four', 'five',
@@ -1315,7 +1388,7 @@
       await new Promise(r => setTimeout(r, 650));
       if (isAborted) return;
 
-      const utter = new SpeechSynthesisUtterance(`Order number ${numberToSpoken(numToSay)}`);
+      const utter = new SpeechSynthesisUtterance(buildAnnounceText(numToSay));
       utter.voice = window.speechSynthesis.getVoices().find(v => v.name === voiceName);
       utter.rate  = speed;
       utter.onend = () => {
@@ -1406,13 +1479,17 @@
     document.getElementById('speedVal').textContent    = savedSpeed;
     document.getElementById('dingRange').value         = savedDing;
     document.getElementById('dingVal').textContent     = savedDing;
+    document.getElementById('announcePrefix').value    = localStorage.getItem('announcePrefix') || '';
+    document.getElementById('announceSuffix').value    = localStorage.getItem('announceSuffix') || '';
   }
 
   function saveAndClose() {
-    localStorage.setItem('repeat',    document.getElementById('repeatRange').value);
-    localStorage.setItem('speed',     document.getElementById('speedRange').value);
-    localStorage.setItem('voiceName', document.getElementById('voiceSelect').value);
-    localStorage.setItem('ding',      document.getElementById('dingRange').value);
+    localStorage.setItem('repeat',          document.getElementById('repeatRange').value);
+    localStorage.setItem('speed',           document.getElementById('speedRange').value);
+    localStorage.setItem('voiceName',       document.getElementById('voiceSelect').value);
+    localStorage.setItem('ding',            document.getElementById('dingRange').value);
+    localStorage.setItem('announcePrefix',  document.getElementById('announcePrefix').value);
+    localStorage.setItem('announceSuffix',  document.getElementById('announceSuffix').value);
     toggleSettings();
   }
 
@@ -1455,7 +1532,7 @@
     startAntiSleep();
     playDing();
     setTimeout(() => {
-      const utter = new SpeechSynthesisUtterance(`Order number ${numberToSpoken('618')}`);
+      const utter = new SpeechSynthesisUtterance(buildAnnounceText('618'));
       utter.voice = window.speechSynthesis.getVoices().find(
         v => v.name === document.getElementById('voiceSelect').value
       );
