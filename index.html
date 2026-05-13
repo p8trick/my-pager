@@ -617,19 +617,15 @@
         padding: 4px 16px;
       }
     }
-/* --- 专门修复 iPhone 全面屏底部黑边下压 --- */
-@media (max-width: 480px) and (orientation: portrait) {
-  .keypad-area {
-    /* 抵消系统自动留出的安全距离 */
-    padding-bottom: 0 !important; 
-    /* 像调整电路元件位置一样，把键盘整体向下挤压 15 像素 */
-    margin-bottom: -15px !important; 
-  }
-  /* 让最后一行按钮稍微长高一点，填补下移后的视觉空隙 */
-  .keypad-area .key-row:last-child {
-    flex: 1.2 !important;
-  }
-}
+    /* --- 针对 iPhone 全面屏的视觉填充方案 --- */
+    @media (max-width: 480px) and (orientation: portrait) {
+      .keypad-area {
+        /* 1. 这里的 padding-bottom 代表着最后一排按钮到旁边的边距是多少 */
+        padding-bottom: 1px !important; 
+        /* 2. 控制键盘整体向下平移，0时为没有向下，负数则是向下移 */
+        margin-bottom: 0 !important; 
+      }
+    }
     /* ─── 看板模式按钮 ───────────────────────────────── */
     #kanbanBtn {
       background: none;
