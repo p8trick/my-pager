@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Order Terminal V4.3.5</title>
+  <title>Order Terminal V4.3.6</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
   <style>
     /* ─── Design Tokens ─────────────────────────────── */
@@ -318,6 +318,7 @@
       padding-top: env(safe-area-inset-top);
       box-sizing: border-box;
       overflow: hidden;
+      touch-action: pan-y;
     }
 
     .log-overlay.show {
@@ -528,6 +529,7 @@
       padding-top: env(safe-area-inset-top);
       box-sizing: border-box;
       overflow: hidden;
+      touch-action: pan-y;
     }
 
     .help-overlay.show {
@@ -671,7 +673,7 @@
     }
 
     body.kanban .display {
-      height: clamp(220px, 32dvh, 320px);
+      height: clamp(220px, 32dvh, 480px);
       justify-content: center;
       align-items: center;
       padding: 16px 25px;
@@ -818,7 +820,7 @@
 
   <!-- 顶部标题栏 -->
   <header class="header">
-    <h1>ORDER TERMINAL V4.3.5</h1>
+    <h1>ORDER TERMINAL V4.3.6</h1>
     <div style="display:flex; gap:8px;">
       <button id="kanbanBtn">⌨️ AUTO</button>
       <button id="settingsBtn">SETTINGS</button>
@@ -937,7 +939,7 @@
   <!-- 说明面板 -->
   <div class="help-overlay" id="helpOverlay">
     <div class="help-header">
-      <h2>GUIDE V4.3.3</h2>
+      <h2>GUIDE V4.3.6</h2>
       <button class="log-close-btn" id="helpCloseBtn">CLOSE</button>
     </div>
     <div class="help-content">
@@ -981,9 +983,9 @@
 
       <div class="help-section">
         <div class="help-section-title">⌨️ BIG MODE 按钮</div>
-        <div class="help-row"><span class="help-key" style="color:#444">AUTO</span><span class="help-desc">自动模式：物理键盘输入时自动切换大字模式，30分钟无输入恢复</span></div>
-        <div class="help-row"><span class="help-key" style="color:var(--history)">BIG</span><span class="help-desc">单击切换：大字模式与AUTO互相切换</span></div>
-        <div class="help-row"><span class="help-key" style="color:var(--accent)">🔒 UI</span><span class="help-desc">双击锁定：强制保持软键盘UI，物理键盘不触发模式切换</span></div>
+        <div class="help-row"><span class="help-key" style="color:#444">AUTO</span><span class="help-desc">自动模式：物理键盘输入时自动切换大字，30分钟无输入自动恢复</span></div>
+        <div class="help-row"><span class="help-key" style="color:var(--history)">BIG</span><span class="help-desc">单击切换大字/正常；iPad字体更大充分利用屏幕，iPhone维持原比例</span></div>
+        <div class="help-row"><span class="help-key" style="color:var(--accent)">🔒 UI</span><span class="help-desc">双击锁定软键盘UI，物理键盘不触发模式切换，适合触屏操作者</span></div>
       </div>
 
       <div class="help-section">
@@ -1091,9 +1093,18 @@
       return;
     }
     const len = (currentVal || '—').length;
-    if (len <= 1)       el.style.fontSize = 'min(75vw, 28dvh)';
-    else if (len === 2) el.style.fontSize = 'min(66vw, 25dvh)';
-    else                el.style.fontSize = 'min(56vw, 22dvh)';
+    const isIPad = window.innerWidth >= 768;
+    if (isIPad) {
+      // iPad：更激进的字体大小，屏幕空间充裕
+      if (len <= 1)       el.style.fontSize = 'min(55vw, 45dvh)';
+      else if (len === 2) el.style.fontSize = 'min(50vw, 40dvh)';
+      else                el.style.fontSize = 'min(44vw, 35dvh)';
+    } else {
+      // iPhone：保持现有值不变
+      if (len <= 1)       el.style.fontSize = 'min(75vw, 28dvh)';
+      else if (len === 2) el.style.fontSize = 'min(66vw, 25dvh)';
+      else                el.style.fontSize = 'min(56vw, 22dvh)';
+    }
   }
 
   // 防息屏：最短可编码的静默 MP4
