@@ -49,6 +49,14 @@
       box-sizing: border-box;
     }
 
+    /* ─── iPad专用：100dvh完美填满，底部留2px呼吸感 ───── */
+    @media (min-width: 768px) {
+      body {
+        height: 100dvh;
+        padding-bottom: 2px;
+      }
+    }
+
     /* 让滚动区域（日志面板内容）局部恢复 */
     .log-content {
       touch-action: pan-y;
