@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Order Terminal V4.3.6</title>
+  <title>Order Terminal V4.3.9</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
   <style>
     /* ─── Design Tokens ─────────────────────────────── */
@@ -58,7 +58,8 @@
     }
 
     /* 让滚动区域（日志面板内容）局部恢复 */
-    .log-content {
+    .log-content,
+    .help-content {
       touch-action: pan-y;
     }
 
@@ -265,7 +266,8 @@
     }
 
     .key:active,
-    .key.active-feedback {
+    .key.active-feedback,
+    .kanban-go.active-feedback {
       background: #ffffff !important;
       color: #000000 !important;
       transform: scale(0.95) !important;
@@ -769,7 +771,7 @@
       display: none;
     }
 
-    /* ANNOUNCE：横贯全宽，flex:2占更多高度 */
+    /* ANNOUNCE：横贯全宽，iPhone上比PREV+NEXT行高2倍 */
     .kanban-go {
       flex: 2;
       width: 100%;
@@ -796,6 +798,26 @@
       transform: scale(0.98);
     }
 
+    /* iPad big模式：三键等高压缩，释放更多空间给号码显示区 */
+    @media (min-width: 768px) {
+      body.kanban .kanban-bottom-row {
+        flex: none;
+        height: clamp(80px, 10dvh, 120px);
+      }
+      body.kanban .display-area {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      body.kanban .display {
+        flex: 1;
+        height: auto;
+      }
+      .kanban-go {
+        flex: 1;  /* iPad上ANNOUNCE和PREV+NEXT等高 */
+      }
+    }
+
     /* PREV+NEXT 并排一行各占一半 */
     .kanban-side {
       flex: 1;
@@ -820,7 +842,7 @@
 
   <!-- 顶部标题栏 -->
   <header class="header">
-    <h1>ORDER TERMINAL V4.3.6</h1>
+    <h1>ORDER TERMINAL V4.3.9</h1>
     <div style="display:flex; gap:8px;">
       <button id="kanbanBtn">⌨️ AUTO</button>
       <button id="settingsBtn">SETTINGS</button>
@@ -1598,16 +1620,111 @@
     document.getElementById('speedVal').textContent = e.target.value;
   });
 
-  // 蓝牙键盘映射
+
+  // ─── iOS物理键盘补丁（Gemini核心方案 + 完整功能保留）──
+  const _iosKb = document.createElement('input');
+  Object.assign(_iosKb.style, {
+    position: 'fixed', bottom: '0px', left: '0px',
+    width: '1px', height: '1px', opacity: '0.01',
+    pointerEvents: 'none', zIndex: '-1000',
+    border: 'none', outline: 'none',
+    background: 'transparent', color: 'transparent'
+  });
+  _iosKb.setAttribute('type', 'text');
+  _iosKb.setAttribute('inputmode', 'none');
+  _iosKb.setAttribute('autocomplete', 'off');
+  _iosKb.setAttribute('autocorrect', 'off');
+  _iosKb.setAttribute('autocapitalize', 'off');
+  document.body.appendChild(_iosKb);
+
+  function _refocusSync() {
+    if (document.getElementById('settingsOverlay').classList.contains('show') ||
+        document.getElementById('helpOverlay').classList.contains('show')) return;
+    const active = document.activeElement;
+    if (active !== _iosKb && (!active ||
+        (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA' && active.tagName !== 'SELECT'))) {
+      _iosKb.focus();
+    }
+  }
+
+  window.addEventListener('scroll', () => {
+    if (window.scrollY !== 0 || window.scrollX !== 0) window.scrollTo(0, 0);
+  });
+
+  // 数字键由input事件处理，防止keydown+input重复
+  _iosKb.addEventListener('input', () => {
+    const val = _iosKb.value;
+    _iosKb.value = '';
+    if (!val) return;
+    for (let i = 0; i < val.length; i++) {
+      const ch = val[i];
+      if (ch >= '0' && ch <= '9') {
+        triggerAutoKanban(); closeLogOverlay();
+        press(ch, true);
+        keyFeedback(`[data-key="${ch}"]`);
+      }
+    }
+  });
+
+  document.addEventListener('touchend', _refocusSync);
+  document.addEventListener('click', _refocusSync);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') _iosKb.focus();
+  });
+  setTimeout(() => _iosKb.focus(), 300);
+
+  // ─── 物理按键视觉反馈 ─────────────────────────────────
+  function keyFeedback(...selectors) {
+    selectors.forEach(sel => {
+      const el = sel.startsWith('#')
+        ? document.getElementById(sel.slice(1))
+        : document.querySelector(sel);
+      if (!el) return;
+      const origBg = el.style.backgroundColor;
+      const origColor = el.style.color;
+      const origTrans = el.style.transform;
+      el.style.backgroundColor = '#ffffff';
+      el.style.color = '#000000';
+      el.style.transform = 'scale(0.85)';
+      el.style.transition = 'none';
+      setTimeout(() => {
+        el.style.backgroundColor = origBg;
+        el.style.color = origColor;
+        el.style.transform = origTrans;
+        el.style.transition = '';
+        el.classList.remove('active-feedback');
+      }, 100);
+      el.classList.add('active-feedback');
+    });
+  }
+
+  // ─── 蓝牙键盘映射（数字由input处理，此处处理控制键）────
   document.addEventListener('keydown', e => {
     if (document.getElementById('settingsOverlay').classList.contains('show')) return;
-    if      (e.key >= '0' && e.key <= '9') { press(e.key, true); }  // fromPhysical = true
-    else if (e.key === 'Enter')             { e.preventDefault(); triggerAutoKanban(); announce(); }
-    else if (e.key === '+' || e.key === '=') { skipToNext(); }
-    else if (e.key === '-')                 { skipToPrev(); }
-    else if (e.key === 'Backspace')         { e.preventDefault(); clearAll(); }
-    else if (e.key === 'Escape')            { closeLogOverlay(); toggleSettings(); }
+    if (e.key >= '0' && e.key <= '9') return;  // 交给input事件
+
+    if (e.key === 'Enter' || e.key === 'NumpadEnter') {
+      e.preventDefault(); triggerAutoKanban(); announce();
+      keyFeedback('#goBtn', '#kanbanGoBtn');
+    }
+    else if (e.key === '+' || e.key === '=' || e.key === 'Add' || e.key === 'PageDown') {
+      e.preventDefault(); triggerAutoKanban(); closeLogOverlay(); skipToNext();
+      keyFeedback('#nextBtn', '#kanbanNextBtn');
+    }
+    else if (e.key === '-' || e.key === 'Subtract' || e.key === 'PageUp') {
+      e.preventDefault(); triggerAutoKanban(); closeLogOverlay(); skipToPrev();
+      keyFeedback('#prevBtn', '#kanbanPrevBtn');
+    }
+    else if (e.key === 'Backspace' || e.key === 'Delete') {
+      e.preventDefault(); clearAll();
+      keyFeedback('#clearBtn');
+    }
+    else if (e.key === 'Escape') {
+      closeLogOverlay();
+      if (document.getElementById('settingsOverlay').classList.contains('show')) toggleSettings();
+    }
   });
+
 
   // 首次点击触发防息屏
   document.addEventListener('click', startAntiSleep, { once: true });
