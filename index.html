@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Order Terminal V4.3.9</title>
+  <title>Order Terminal V4.5</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
   <style>
     /* ─── Design Tokens ─────────────────────────────── */
@@ -800,21 +800,26 @@
 
     /* iPad big模式：三键等高压缩，释放更多空间给号码显示区 */
     @media (min-width: 768px) {
+      body.kanban .keypad-area {
+        flex: none;
+      }
       body.kanban .kanban-bottom-row {
         flex: none;
-        height: clamp(80px, 10dvh, 120px);
+        height: clamp(100px, 13dvh, 150px);
       }
       body.kanban .display-area {
         flex: 1;
+        min-height: 0;
         display: flex;
         flex-direction: column;
       }
       body.kanban .display {
         flex: 1;
+        min-height: 0;
         height: auto;
       }
       .kanban-go {
-        flex: 1;  /* iPad上ANNOUNCE和PREV+NEXT等高 */
+        flex: 1;
       }
     }
 
@@ -842,7 +847,7 @@
 
   <!-- 顶部标题栏 -->
   <header class="header">
-    <h1>ORDER TERMINAL V4.3.9</h1>
+    <h1>ORDER TERMINAL V4.5</h1>
     <div style="display:flex; gap:8px;">
       <button id="kanbanBtn">⌨️ AUTO</button>
       <button id="settingsBtn">SETTINGS</button>
@@ -1704,7 +1709,9 @@
     if (e.key >= '0' && e.key <= '9') return;  // 交给input事件
 
     if (e.key === 'Enter' || e.key === 'NumpadEnter') {
-      e.preventDefault(); triggerAutoKanban(); announce();
+      e.preventDefault();
+      if (window.speechSynthesis.speaking) return;  // 防连发：播报中完全忽略
+      triggerAutoKanban(); announce();
       keyFeedback('#goBtn', '#kanbanGoBtn');
     }
     else if (e.key === '+' || e.key === '=' || e.key === 'Add' || e.key === 'PageDown') {
