@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Order Terminal V4.6.7</title>
+  <title>Order Terminal V4.6.8</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
   <style>
     /* ─── Design Tokens ─────────────────────────────── */
@@ -746,6 +746,7 @@
       flex: 1;
       min-height: 0;
       height: auto;
+      pointer-events: none;  /* 溢出区域点击穿透 */
     }
 
     body.kanban .display-label {
@@ -755,6 +756,7 @@
     body.kanban .display-number {
       text-align: center;
       line-height: 1;
+      pointer-events: none;  /* 大字溢出时点击穿透，不遮挡下方历史磁贴 */
     }
 
     body.kanban .stats-box {
@@ -765,6 +767,7 @@
       gap: 8px;
       border-left: none;
       padding-left: 0;
+      pointer-events: auto;  /* 恢复点击，可以打开日志 */
     }
 
     body.kanban .last-num-display {
@@ -915,7 +918,7 @@
 
   <!-- 顶部标题栏 -->
   <header class="header">
-    <h1>ORDER TERMINAL V4.6.7</h1>
+    <h1>ORDER TERMINAL V4.6.8</h1>
     <div style="display:flex; gap:8px;">
       <button id="kanbanBtn">⌨️ AUTO</button>
       <button id="settingsBtn">SETTINGS</button>
@@ -1043,7 +1046,7 @@
 
   <div class="help-overlay" id="helpOverlay">
     <div class="help-header">
-      <h2>GUIDE V4.6.6</h2>
+      <h2>GUIDE V4.6.8</h2>
       <button class="log-close-btn" id="helpCloseBtn">CLOSE</button>
     </div>
     <div class="help-content">
@@ -1088,6 +1091,7 @@
         <div class="help-row"><span class="help-key" style="color:var(--accent)">🔒 UI</span><span class="help-desc">Double tap to lock normal UI · physical keyboard won't trigger mode switch · 双击锁定软键盘UI，适合触屏操作者</span></div>
         <div class="help-row"><span class="help-key">Layout</span><span class="help-desc">Display enlarged, keypad hidden, only ANNOUNCE / PREV / NEXT remain · 显示框放大，软键盘隐藏</span></div>
         <div class="help-row"><span class="help-key">Font Size</span><span class="help-desc">Adjustable in Settings · device-specific · saved locally · 设置里可调节，设备独立保存</span></div>
+        <div class="help-row"><span class="help-key">Click-through</span><span class="help-desc">Oversized numbers are transparent to touch · history chips remain tappable · 大字溢出不遮挡历史磁贴，点击可穿透</span></div>
       </div>
 
       <div class="help-section">
