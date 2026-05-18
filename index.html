@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Order Terminal V4.5.2</title>
+  <title>Order Terminal V4.6.5</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
   <style>
     /* ─── Design Tokens ─────────────────────────────── */
@@ -97,7 +97,7 @@
     .display {
       background: var(--card);
       border-radius: 20px;
-      height: clamp(110px, 16dvh, 160px);
+      height: clamp(140px, 18dvh, 190px);
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
@@ -497,7 +497,9 @@
       cursor: pointer;
     }
 
-    .help-btn {
+    .save-btn {
+      width: 100%;
+      padding: 18px;
       width: 100%;
       padding: 12px;
       background: none;
@@ -508,6 +510,46 @@
       font-weight: 600;
       cursor: pointer;
       margin-bottom: 12px;
+    }
+
+    .font-stepper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .step-btn {
+      width: 48px;
+      height: 48px;
+      background: #222;
+      border: 1px solid #444;
+      color: #fff;
+      border-radius: 10px;
+      font-size: 22px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .step-btn:active {
+      background: #fff;
+      color: #000;
+    }
+
+    .font-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      color: var(--accent);
+      min-width: 50px;
+      text-align: center;
+    }
+
+    .font-unit {
+      font-size: 12px;
+      color: #555;
     }
 
     .save-btn {
@@ -521,6 +563,21 @@
       font-size: 18px;
       cursor: pointer;
     }
+
+    .help-btn {
+      margin-top: 10px;
+      margin-bottom: 12px;
+      width: 100%;
+      padding: 12px;
+      background: #222;
+      color: #fff;
+      border: 1px solid #444;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
     /* ─── Help Overlay（抄Settings滚动方案）────────────── */
     .help-overlay {
       position: fixed;
@@ -670,16 +727,22 @@
       border-color: var(--accent);
     }
 
-    /* ─── 看板模式：display 2倍高，其余不变 ─────────── */
+    /* ─── 看板模式：display 扩展，其余不变 ─────────── */
     body.kanban .display-area {
-      flex-shrink: 0;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
     }
 
     body.kanban .display {
-      height: clamp(220px, 32dvh, 480px);
       justify-content: center;
       align-items: center;
       padding: 16px 25px;
+      overflow: visible;
+      flex: 1;
+      min-height: 0;
+      height: auto;
     }
 
     body.kanban .display-label {
@@ -740,8 +803,7 @@
     }
 
     body.kanban .keypad-area {
-      flex: 1;
-      min-height: 0;
+      flex: none;
       padding: 6px 16px 0px 16px;
       gap: 8px;
       display: flex;
@@ -766,15 +828,17 @@
 
     body.kanban .kanban-bottom-row {
       display: flex;
+      flex: none;
+      height: clamp(225px, 30dvh, 275px);
     }
 
     body.kanban .key-row-normal {
       display: none;
     }
 
-    /* ANNOUNCE：横贯全宽，iPhone上比PREV+NEXT行高2倍 */
+    /* ANNOUNCE：横贯全宽，三键等高 */
     .kanban-go {
-      flex: 2;
+      flex: 1;
       width: 100%;
       background: var(--accent);
       color: #000;
@@ -848,7 +912,7 @@
 
   <!-- 顶部标题栏 -->
   <header class="header">
-    <h1>ORDER TERMINAL V4.5.2</h1>
+    <h1>ORDER TERMINAL V4.6.5</h1>
     <div style="display:flex; gap:8px;">
       <button id="kanbanBtn">⌨️ AUTO</button>
       <button id="settingsBtn">SETTINGS</button>
@@ -959,97 +1023,107 @@
         <label>DATA MANAGEMENT</label>
         <button class="reset-btn" id="resetBtn">🗑 RESET ALL LOGS & HISTORY</button>
       </div>
+      <div class="setting-item" id="kanbanFontSetting">
+        <label>Big Mode Font Size <span id="kanbanFontLabel"></span></label>
+        <div class="font-stepper">
+          <button class="step-btn" id="fontMinus">－</button>
+          <span class="font-val" id="kanbanFontVal">100</span>
+          <button class="step-btn" id="fontPlus">＋</button>
+          <span class="font-unit">vw</span>
+        </div>
+        <div style="font-size:10px;color:#555;margin-top:6px;">Takes effect immediately · Enter Big Mode to preview in real time</div>
+      </div>
       <button class="help-btn" id="helpBtn">📖 FEATURE GUIDE & KEY REFERENCE</button>
       <button class="save-btn" id="saveBtn">DONE</button>
     </div>
   </div>
 
-  <!-- 说明面板 -->
   <div class="help-overlay" id="helpOverlay">
     <div class="help-header">
-      <h2>GUIDE V4.5.2</h2>
+      <h2>GUIDE V4.6.5</h2>
       <button class="log-close-btn" id="helpCloseBtn">CLOSE</button>
     </div>
     <div class="help-content">
 
       <div class="help-section">
         <div class="help-section-title">📟 DISPLAY 显示区</div>
-        <div class="help-row"><span class="help-key">LAST</span><span class="help-desc">上一次叫号的号码与时间间隔，点击可查看今日日志</span></div>
-        <div class="help-row"><span class="help-key">0m</span><span class="help-desc">刚叫完，白色显示</span></div>
-        <div class="help-row"><span class="help-key">1–5m</span><span class="help-desc">绿色，节奏正常</span></div>
-        <div class="help-row"><span class="help-key">6–10m</span><span class="help-desc">黄色，稍慢</span></div>
-        <div class="help-row"><span class="help-key">11–20m</span><span class="help-desc">红色，较慢</span></div>
-        <div class="help-row"><span class="help-key">21–30m</span><span class="help-desc">灰色，长时间未叫</span></div>
-        <div class="help-row"><span class="help-key">HH:MM</span><span class="help-desc">超过30分钟后切换为实际时间，灰色</span></div>
+        <div class="help-row"><span class="help-key">LAST</span><span class="help-desc">Last order number &amp; elapsed time · 上次叫号及时间间隔 · Tap to view today's log / 点击查看日志</span></div>
+        <div class="help-row"><span class="help-key" style="color:#ffffff">0m</span><span class="help-desc">Just called · 刚叫完（白色 White）</span></div>
+        <div class="help-row"><span class="help-key" style="color:var(--history)">1–5m</span><span class="help-desc">Normal pace · 节奏正常（绿色 Green）</span></div>
+        <div class="help-row"><span class="help-key" style="color:#FFD60A">6–10m</span><span class="help-desc">Slightly slow · 稍慢（黄色 Yellow）</span></div>
+        <div class="help-row"><span class="help-key" style="color:var(--danger)">11–20m</span><span class="help-desc">Slow · 较慢（红色 Red）</span></div>
+        <div class="help-row"><span class="help-key" style="color:#444">21–30m</span><span class="help-desc">Long idle · 长时间未叫（灰色 Grey）</span></div>
+        <div class="help-row"><span class="help-key" style="color:#444">HH:MM</span><span class="help-desc">Over 30 min — switches to actual time · 超30分钟后显示实际时间</span></div>
       </div>
 
       <div class="help-section">
         <div class="help-section-title">🔢 KEYPAD 软键盘</div>
-        <div class="help-row"><span class="help-key">0–9</span><span class="help-desc">输入号码，最多3位，超出自动忽略</span></div>
-        <div class="help-row"><span class="help-key">CLR</span><span class="help-desc">清空输入；播报中按则立即中断播报</span></div>
-        <div class="help-row"><span class="help-key">PREV</span><span class="help-desc">当前号码 −1</span></div>
-        <div class="help-row"><span class="help-key">NEXT</span><span class="help-desc">当前号码 +1</span></div>
-        <div class="help-row"><span class="help-key">ANNOUNCE</span><span class="help-desc">播报当前号码，结束后自动 +1</span></div>
+        <div class="help-row"><span class="help-key">0–9</span><span class="help-desc">Enter order number, max 3 digits · 输入号码，最多3位</span></div>
+        <div class="help-row"><span class="help-key">CLR</span><span class="help-desc">Clear input / interrupt announcement · 清空输入，播报中按则中断</span></div>
+        <div class="help-row"><span class="help-key">PREV</span><span class="help-desc">Current number −1 · 当前号码减1</span></div>
+        <div class="help-row"><span class="help-key">NEXT</span><span class="help-desc">Current number +1 · 当前号码加1</span></div>
+        <div class="help-row"><span class="help-key">ANNOUNCE</span><span class="help-desc">Announce current number, auto +1 after · 播报号码，结束后自动加1</span></div>
       </div>
 
       <div class="help-section">
         <div class="help-section-title">⌨️ BLUETOOTH KEYBOARD 蓝牙键盘</div>
-        <div class="help-row"><span class="help-key">0–9</span><span class="help-desc">盲打模式：第一键重置当前号码，后续追加；播报中输入不打断语音，播报结束后显示盲打值不做+1</span></div>
-        <div class="help-row"><span class="help-key">Enter</span><span class="help-desc">播报当前号码；同步锁防连发，650ms内重复按完全无效</span></div>
-        <div class="help-row"><span class="help-key">+ / = / Add</span><span class="help-desc">号码 +1（小键盘加号同效）</span></div>
-        <div class="help-row"><span class="help-key">− / Subtract</span><span class="help-desc">号码 −1（小键盘减号同效）</span></div>
-        <div class="help-row"><span class="help-key">PageDown</span><span class="help-desc">号码 +1</span></div>
-        <div class="help-row"><span class="help-key">PageUp</span><span class="help-desc">号码 −1</span></div>
-        <div class="help-row"><span class="help-key">Backspace / Delete</span><span class="help-desc">清空 / 中断播报</span></div>
-        <div class="help-row"><span class="help-key">Esc</span><span class="help-desc">关闭日志或设置面板</span></div>
-        <div class="help-row"><span class="help-key">iOS激活</span><span class="help-desc">首次使用前触摸屏幕一次，键盘即自动激活并保持；切换到其他app再回来后也会自动恢复</span></div>
+        <div class="help-row"><span class="help-key">0–9</span><span class="help-desc">Blind-type mode: first key resets, subsequent keys append · 盲打：第一键重置，后续追加；播报中输入不中断语音</span></div>
+        <div class="help-row"><span class="help-key">Enter</span><span class="help-desc">Announce · sync lock prevents repeat within 650ms · 播报，同步锁防连发</span></div>
+        <div class="help-row"><span class="help-key">+ / = / Add</span><span class="help-desc">Number +1 (numpad + same effect) · 号码加1</span></div>
+        <div class="help-row"><span class="help-key">− / Subtract</span><span class="help-desc">Number −1 (numpad − same effect) · 号码减1</span></div>
+        <div class="help-row"><span class="help-key">PageDown</span><span class="help-desc">Number +1 · 号码加1</span></div>
+        <div class="help-row"><span class="help-key">PageUp</span><span class="help-desc">Number −1 · 号码减1</span></div>
+        <div class="help-row"><span class="help-key">Backspace / Delete</span><span class="help-desc">Clear / interrupt · 清空或中断播报</span></div>
+        <div class="help-row"><span class="help-key">Esc</span><span class="help-desc">Close log or settings panel · 关闭日志或设置面板</span></div>
+        <div class="help-row"><span class="help-key">iOS Activate</span><span class="help-desc">Tap screen once to activate keyboard · 首次使用前触摸屏幕一次即可激活，之后自动保持</span></div>
       </div>
 
       <div class="help-section">
-        <div class="help-section-title">⌨️ BIG MODE 看板模式</div>
-        <div class="help-row"><span class="help-key" style="color:#444">AUTO</span><span class="help-desc">自动模式：物理键盘任意按键立即切换大字看板，30分钟无物理输入自动恢复正常UI</span></div>
-        <div class="help-row"><span class="help-key" style="color:var(--history)">BIG</span><span class="help-desc">单击手动切换大字/正常；iPad字体更大充分利用屏幕，iPhone维持原比例不变</span></div>
-        <div class="help-row"><span class="help-key" style="color:var(--accent)">🔒 UI</span><span class="help-desc">双击锁定：强制保持软键盘UI，物理键盘操作正常但不触发模式切换，适合触屏为主的操作者</span></div>
-        <div class="help-row"><span class="help-key">大字布局</span><span class="help-desc">显示框放大、软键盘隐藏、底部只保留 ANNOUNCE / PREV / NEXT；历史磁贴放大更易点击</span></div>
+        <div class="help-section-title">⌨️ BIG MODE 看板大字模式</div>
+        <div class="help-row"><span class="help-key" style="color:#444">AUTO</span><span class="help-desc">Any physical key instantly switches to big display · 物理键盘按键立即切换大字，30分钟无输入自动恢复</span></div>
+        <div class="help-row"><span class="help-key" style="color:var(--history)">BIG</span><span class="help-desc">Single tap to toggle big/normal · iPad uses larger font · 单击切换；iPad字体更大</span></div>
+        <div class="help-row"><span class="help-key" style="color:var(--accent)">🔒 UI</span><span class="help-desc">Double tap to lock normal UI · physical keyboard won't trigger mode switch · 双击锁定软键盘UI，适合触屏操作者</span></div>
+        <div class="help-row"><span class="help-key">Layout</span><span class="help-desc">Display enlarged, keypad hidden, only ANNOUNCE / PREV / NEXT remain · 显示框放大，软键盘隐藏</span></div>
+        <div class="help-row"><span class="help-key">Font Size</span><span class="help-desc">Adjustable in Settings · device-specific · saved locally · 设置里可调节，设备独立保存</span></div>
       </div>
 
       <div class="help-section">
         <div class="help-section-title">🔊 ANNOUNCE 自定义播报</div>
-        <div class="help-row"><span class="help-key">前缀</span><span class="help-desc">数字前的文字，例如「请取餐，号码」或「Order number」；不填则只念数字</span></div>
-        <div class="help-row"><span class="help-key">后缀</span><span class="help-desc">数字后的文字，例如「号，谢谢」；不填则念完数字即止</span></div>
-        <div class="help-row"><span class="help-key">语言自动匹配</span><span class="help-desc">数字读法跟随语音引擎语言：中文→逐字（六一八），英文→分组口语（six eighteen），其他语言直接传数字</span></div>
-        <div class="help-row"><span class="help-key">默认</span><span class="help-desc">前后缀均为空时保持英文格式「Order number six eighteen」</span></div>
+        <div class="help-row"><span class="help-key">Prefix 前缀</span><span class="help-desc">Text before number · e.g. "Please collect order number" / "请取餐，号码"</span></div>
+        <div class="help-row"><span class="help-key">Suffix 后缀</span><span class="help-desc">Text after number · e.g. "thank you" / "号，谢谢" · leave blank to end after number</span></div>
+        <div class="help-row"><span class="help-key">Auto Language</span><span class="help-desc">Number reading follows voice engine language · ZH: digit-by-digit (六一八) · EN: grouped (six eighteen) · 数字读法自动跟随语音语言</span></div>
+        <div class="help-row"><span class="help-key">Default</span><span class="help-desc">Both empty → "Order number six eighteen" · 前后缀均空时保持英文格式</span></div>
       </div>
 
       <div class="help-section">
         <div class="help-section-title">🎙 VOICE ENGINE 语音引擎</div>
-        <div class="help-row"><span class="help-key">引擎选择</span><span class="help-desc">系统所有语音均可选，影响口音和音色；切换语言引擎配合自定义前后缀实现多语言播报</span></div>
-        <div class="help-row"><span class="help-key">Speed</span><span class="help-desc">语音播报速度，0.5x–1.5x</span></div>
-        <div class="help-row"><span class="help-key">Repeat</span><span class="help-desc">每次播报重复次数，1–5次</span></div>
-        <div class="help-row"><span class="help-key">Ding Volume</span><span class="help-desc">播报前叮咚提示音音量，0为静音只播语音</span></div>
-        <div class="help-row"><span class="help-key">TEST 618</span><span class="help-desc">测试当前所有语音设置，播报示例号码618</span></div>
+        <div class="help-row"><span class="help-key">Engine</span><span class="help-desc">Any system voice · affects accent &amp; tone only · 任意系统语音，影响口音音色</span></div>
+        <div class="help-row"><span class="help-key">Speed</span><span class="help-desc">Playback speed 0.5x – 1.5x · 播报速度</span></div>
+        <div class="help-row"><span class="help-key">Repeat</span><span class="help-desc">Repeat count 1–5 times · 重复次数</span></div>
+        <div class="help-row"><span class="help-key">Ding Volume</span><span class="help-desc">Chime volume · 0 = voice only · 叮咚音量，0为静音</span></div>
+        <div class="help-row"><span class="help-key">TEST 618</span><span class="help-desc">Preview current voice settings · 测试当前语音设置</span></div>
       </div>
 
       <div class="help-section">
         <div class="help-section-title">📋 RECENT LOG 历史磁贴</div>
-        <div class="help-row"><span class="help-key">#XX</span><span class="help-desc">最近10个叫过的号码，点击可重新播报；回播不计入日志统计，不影响平均值</span></div>
+        <div class="help-row"><span class="help-key">#XX</span><span class="help-desc">Tap to re-announce · not counted in stats · 点击重新播报，不计入统计</span></div>
       </div>
 
       <div class="help-section">
         <div class="help-section-title">📊 DAILY LOG 今日日志</div>
-        <div class="help-row"><span class="help-key">间隔颜色</span><span class="help-desc">白0m / 绿1–5m / 黄6–10m / 红11–20m / 灰21m+</span></div>
-        <div class="help-row"><span class="help-key">平均值</span><span class="help-desc">仅统计1–20分钟内的有效间隔，过滤午休等长时间停顿</span></div>
-        <div class="help-row"><span class="help-key">容量</span><span class="help-desc">最多记录300条，超出自动淘汰最旧记录</span></div>
+        <div class="help-row"><span class="help-key">Interval Colors</span><span class="help-desc">White 0m / Green 1–5m / Yellow 6–10m / Red 11–20m / Grey 21m+ · 颜色对应间隔长短</span></div>
+        <div class="help-row"><span class="help-key">Average</span><span class="help-desc">Only counts intervals 1–20 min · filters long breaks · 仅统计1–20分钟有效间隔</span></div>
+        <div class="help-row"><span class="help-key">Capacity</span><span class="help-desc">Max 300 records · oldest auto-removed · 最多300条，自动淘汰最旧记录</span></div>
       </div>
 
       <div class="help-section">
-        <div class="help-section-title">🔋 防息屏</div>
-        <div class="help-row"><span class="help-key">双保险</span><span class="help-desc">Wake Lock API + 静默视频循环，确保iPad/iPhone长时间使用不息屏</span></div>
+        <div class="help-section-title">🔋 ANTI-SLEEP 防息屏</div>
+        <div class="help-row"><span class="help-key">Dual Guard</span><span class="help-desc">Wake Lock API + silent video loop · keeps iPad/iPhone awake during service · 双重保险防息屏</span></div>
       </div>
 
       <div class="help-section">
-        <div class="help-section-title">⚙️ DATA MANAGEMENT</div>
-        <div class="help-row"><span class="help-key">RESET</span><span class="help-desc">清空今日全部日志、历史磁贴和当前号码，设置不受影响</span></div>
+        <div class="help-section-title">⚙️ DATA MANAGEMENT 数据管理</div>
+        <div class="help-row"><span class="help-key">RESET</span><span class="help-desc">Clears all logs, history &amp; current number · settings preserved · 清空日志和历史，设置不受影响</span></div>
       </div>
 
     </div>
@@ -1143,17 +1217,24 @@
     }
     const len = (currentVal || '—').length;
     const isIPad = window.innerWidth >= 768;
-    if (isIPad) {
-      // iPad：更激进的字体大小，屏幕空间充裕
-      if (len <= 1)       el.style.fontSize = 'min(55vw, 45dvh)';
-      else if (len === 2) el.style.fontSize = 'min(50vw, 40dvh)';
-      else                el.style.fontSize = 'min(44vw, 35dvh)';
-    } else {
-      // iPhone：保持现有值不变
-      if (len <= 1)       el.style.fontSize = 'min(75vw, 28dvh)';
-      else if (len === 2) el.style.fontSize = 'min(66vw, 25dvh)';
-      else                el.style.fontSize = 'min(56vw, 22dvh)';
-    }
+
+    // 读取用户自定义字体大小（vw单位）
+    const storageKey = isIPad ? 'kanbanFontIPad' : 'kanbanFontIPhone';
+    const defaults = isIPad
+      ? [55, 50, 44]   // iPad默认：1位/2位/3位
+      : [75, 66, 56];  // iPhone默认
+    const savedBase = parseInt(localStorage.getItem(storageKey));
+    // 用户调的是3位数的基准值，1位和2位按比例缩放
+    const base3 = isNaN(savedBase) ? defaults[2] : savedBase;
+    const ratio  = base3 / defaults[2];
+    const vw1 = Math.round(defaults[0] * ratio);
+    const vw2 = Math.round(defaults[1] * ratio);
+    const vw3 = base3;
+
+    const dvhLimit = isIPad ? [90, 80, 70] : [60, 55, 50];
+    if (len <= 1)       el.style.fontSize = `min(${vw1}vw, ${dvhLimit[0]}dvh)`;
+    else if (len === 2) el.style.fontSize = `min(${vw2}vw, ${dvhLimit[1]}dvh)`;
+    else                el.style.fontSize = `min(${vw3}vw, ${dvhLimit[2]}dvh)`;
   }
 
   // 防息屏：最短可编码的静默 MP4
@@ -1635,7 +1716,41 @@
     document.getElementById('helpOverlay').classList.remove('show');
   });
 
-  document.getElementById('settingsBtn').addEventListener('click', toggleSettings);
+  // ─── Big Mode 字体调节器 ──────────────────────────────
+  function initFontStepper() {
+    const isIPad   = window.innerWidth >= 768;
+    const key      = isIPad ? 'kanbanFontIPad' : 'kanbanFontIPhone';
+    const defVal   = isIPad ? 44 : 56;   // 3位数默认vw基准
+    const min      = isIPad ? 20 : 30;
+    const max      = isIPad ? 120 : 50;
+    const step     = 2;
+    const label    = isIPad ? '(iPad · Large Screen)' : '(iPhone · Small Screen)';
+
+    document.getElementById('kanbanFontLabel').textContent = label;
+    const current = parseInt(localStorage.getItem(key)) || defVal;
+    document.getElementById('kanbanFontVal').textContent = current;
+
+    document.getElementById('fontMinus').onclick = () => {
+      const cur = parseInt(document.getElementById('kanbanFontVal').textContent);
+      const next = Math.max(min, cur - step);
+      document.getElementById('kanbanFontVal').textContent = next;
+      localStorage.setItem(key, next);
+      updateKanbanNumber();  // 实时预览
+    };
+
+    document.getElementById('fontPlus').onclick = () => {
+      const cur = parseInt(document.getElementById('kanbanFontVal').textContent);
+      const next = Math.min(max, cur + step);
+      document.getElementById('kanbanFontVal').textContent = next;
+      localStorage.setItem(key, next);
+      updateKanbanNumber();  // 实时预览
+    };
+  }
+
+  document.getElementById('settingsBtn').addEventListener('click', () => {
+    toggleSettings();
+    initFontStepper();
+  });
   document.getElementById('saveBtn').addEventListener('click', saveAndClose);
   document.getElementById('testVoiceBtn').addEventListener('click', testVoice);
   document.getElementById('resetBtn').addEventListener('click', resetDayData);
