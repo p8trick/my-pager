@@ -1228,7 +1228,7 @@
     const base3 = isNaN(savedBase) ? defaults[2] : savedBase;
     const ratio  = base3 / defaults[2];
     const vw1 = Math.round(defaults[0] * ratio);
-    const vw2 = Math.round(defaults[1] * ratio);
+    const vw2 = Math.round(defaults[0] * ratio);
     const vw3 = base3;
 
     const dvhLimit = isIPad ? [90, 80, 70] : [60, 55, 50];
