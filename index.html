@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Order Terminal V4.6.5</title>
+  <title>Order Terminal V4.6.7</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
   <style>
     /* ─── Design Tokens ─────────────────────────────── */
@@ -176,7 +176,7 @@
 
     .display-number {
       font-family: 'JetBrains Mono', monospace;
-      font-size: clamp(90px, 15dvh, 160px);
+      font-size: clamp(90px, 16dvh, 160px);
       color: var(--accent);
       text-align: right;
       line-height: 1;
@@ -655,6 +655,9 @@
     }
     /* ─── iPad 竖屏（≥1000px高）：键盘更舒适，号码不变 ── */
     @media (min-height: 1000px) {
+      .display-number {
+        font-size: clamp(110px, 16dvh, 200px);
+      }
       .key {
         font-size: clamp(28px, 3dvh, 42px);
       }
@@ -912,7 +915,7 @@
 
   <!-- 顶部标题栏 -->
   <header class="header">
-    <h1>ORDER TERMINAL V4.6.5</h1>
+    <h1>ORDER TERMINAL V4.6.7</h1>
     <div style="display:flex; gap:8px;">
       <button id="kanbanBtn">⌨️ AUTO</button>
       <button id="settingsBtn">SETTINGS</button>
@@ -1040,7 +1043,7 @@
 
   <div class="help-overlay" id="helpOverlay">
     <div class="help-header">
-      <h2>GUIDE V4.6.5</h2>
+      <h2>GUIDE V4.6.6</h2>
       <button class="log-close-btn" id="helpCloseBtn">CLOSE</button>
     </div>
     <div class="help-content">
@@ -1218,23 +1221,24 @@
     const len = (currentVal || '—').length;
     const isIPad = window.innerWidth >= 768;
 
-    // 读取用户自定义字体大小（vw单位）
     const storageKey = isIPad ? 'kanbanFontIPad' : 'kanbanFontIPhone';
-    const defaults = isIPad
-      ? [55, 50, 44]   // iPad默认：1位/2位/3位
-      : [75, 66, 56];  // iPhone默认
-    const savedBase = parseInt(localStorage.getItem(storageKey));
-    // 用户调的是3位数的基准值，1位和2位按比例缩放
-    const base3 = isNaN(savedBase) ? defaults[2] : savedBase;
-    const ratio  = base3 / defaults[2];
-    const vw1 = Math.round(defaults[0] * ratio);
-    const vw2 = Math.round(defaults[0] * ratio);
-    const vw3 = base3;
 
-    const dvhLimit = isIPad ? [90, 80, 70] : [60, 55, 50];
-    if (len <= 1)       el.style.fontSize = `min(${vw1}vw, ${dvhLimit[0]}dvh)`;
-    else if (len === 2) el.style.fontSize = `min(${vw2}vw, ${dvhLimit[1]}dvh)`;
-    else                el.style.fontSize = `min(${vw3}vw, ${dvhLimit[2]}dvh)`;
+    if (isIPad) {
+      // iPad：横屏够宽，1/2/3位数完全相同尺寸，统一调节
+      const base = parseInt(localStorage.getItem(storageKey)) || 44;
+      el.style.fontSize = `min(${base}vw, 90dvh)`;
+    } else {
+      // iPhone：1位=2位同尺寸，3位稍小维持现状比例
+      const defaults = [75, 75, 56];   // 1位/2位/3位默认值（1=2）
+      const savedBase = parseInt(localStorage.getItem(storageKey));
+      const base3 = isNaN(savedBase) ? defaults[2] : savedBase;
+      const ratio  = base3 / defaults[2];
+      const vw12 = Math.round(defaults[0] * ratio);  // 1位和2位相同
+      const vw3  = base3;
+      const dvhLimit = [60, 60, 50];
+      if (len <= 2) el.style.fontSize = `min(${vw12}vw, ${dvhLimit[0]}dvh)`;
+      else          el.style.fontSize = `min(${vw3}vw,  ${dvhLimit[2]}dvh)`;
+    }
   }
 
   // 防息屏：最短可编码的静默 MP4
@@ -1720,9 +1724,9 @@
   function initFontStepper() {
     const isIPad   = window.innerWidth >= 768;
     const key      = isIPad ? 'kanbanFontIPad' : 'kanbanFontIPhone';
-    const defVal   = isIPad ? 44 : 56;   // 3位数默认vw基准
+    const defVal   = isIPad ? 44 : 56;
     const min      = isIPad ? 20 : 30;
-    const max      = isIPad ? 50 :60;
+    const max      = isIPad ? 50 : 60;
     const step     = 2;
     const label    = isIPad ? '(iPad · Large Screen)' : '(iPhone · Small Screen)';
 
