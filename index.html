@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Order Terminal V4.6.8</title>
+  <title>Order Terminal V4.7.1</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
   <style>
     /* ─── Design Tokens ─────────────────────────────── */
@@ -552,6 +552,55 @@
       color: #555;
     }
 
+    /* ─── Recall Key Selector ────────────────────────── */
+    .recall-key-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .recall-key-btn {
+      flex: 1;
+      height: 52px;
+      background: #000;
+      border: 1px solid #333;
+      border-radius: 12px;
+      color: #555;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 22px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+      -webkit-user-select: none;
+      user-select: none;
+      position: relative;
+    }
+
+    .recall-key-btn:active {
+      transform: scale(0.92);
+    }
+
+    .recall-key-btn.selected {
+      background: #1a1a00;
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 12px rgba(255, 159, 10, 0.25);
+    }
+
+    .recall-key-none {
+      font-size: 10px;
+      color: #555;
+      margin-top: 6px;
+      text-align: right;
+    }
+
+    .recall-key-none.active {
+      color: var(--danger);
+    }
+
     .save-btn {
       width: 100%;
       padding: 18px;
@@ -918,7 +967,7 @@
 
   <!-- 顶部标题栏 -->
   <header class="header">
-    <h1>ORDER TERMINAL V4.6.8</h1>
+    <h1>ORDER TERMINAL V4.7.1</h1>
     <div style="display:flex; gap:8px;">
       <button id="kanbanBtn">⌨️ AUTO</button>
       <button id="settingsBtn">SETTINGS</button>
@@ -1029,6 +1078,15 @@
         <label>DATA MANAGEMENT</label>
         <button class="reset-btn" id="resetBtn">🗑 RESET ALL LOGS & HISTORY</button>
       </div>
+      <div class="setting-item">
+        <label>Recall Last Call Shortcut Key · 回拨快捷键</label>
+        <div class="recall-key-row">
+          <button class="recall-key-btn" id="recallKeyDivide" data-recall="Divide">/</button>
+          <button class="recall-key-btn selected" id="recallKeyMultiply" data-recall="Multiply">*</button>
+          <button class="recall-key-btn" id="recallKeyDecimal" data-recall="Decimal">.</button>
+        </div>
+        <div class="recall-key-none" id="recallNoneLabel">Tap again to deselect · no shortcut assigned when none selected</div>
+      </div>
       <div class="setting-item" id="kanbanFontSetting">
         <label>Big Mode Font Size <span id="kanbanFontLabel"></span></label>
         <div class="font-stepper">
@@ -1046,7 +1104,7 @@
 
   <div class="help-overlay" id="helpOverlay">
     <div class="help-header">
-      <h2>GUIDE V4.6.8</h2>
+      <h2>GUIDE V4.7.1</h2>
       <button class="log-close-btn" id="helpCloseBtn">CLOSE</button>
     </div>
     <div class="help-content">
@@ -1082,6 +1140,15 @@
         <div class="help-row"><span class="help-key">Backspace / Delete</span><span class="help-desc">Clear / interrupt · 清空或中断播报</span></div>
         <div class="help-row"><span class="help-key">Esc</span><span class="help-desc">Close log or settings panel · 关闭日志或设置面板</span></div>
         <div class="help-row"><span class="help-key">iOS Activate</span><span class="help-desc">Tap screen once to activate keyboard · 首次使用前触摸屏幕一次即可激活，之后自动保持</span></div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-title">🔁 RECALL SHORTCUT 回拨快捷键 <span style="color:var(--accent);font-size:10px;margin-left:6px;">NEW v4.7</span></div>
+        <div class="help-row"><span class="help-key">/ · * · .</span><span class="help-desc">One-key recall: re-announces the last completed call group instantly · 一键回拨：立即重新播报最后一组正式叫号</span></div>
+        <div class="help-row"><span class="help-key">Default Key</span><span class="help-desc">* (Multiply) is selected by default · 默认使用 * 键</span></div>
+        <div class="help-row"><span class="help-key">Configure</span><span class="help-desc">Settings → tap a key icon to select · tap again to deselect (no shortcut) · 设置面板点击图标选中，再点取消（即无快捷键）</span></div>
+        <div class="help-row"><span class="help-key">Scope</span><span class="help-desc">Only recalls formal announce calls · history chip taps are excluded · 仅回拨正式叫号，历史磁贴临时呼叫不计入</span></div>
+        <div class="help-row"><span class="help-key">History Chips</span><span class="help-desc">Chips are for targeted recall of earlier customers · not counted in stats · use screen tap for these · 历史磁贴用于点名召回更早的客人，统计不计入，建议触屏操作</span></div>
       </div>
 
       <div class="help-section">
@@ -1147,6 +1214,9 @@
   let isAnnouncing = false;  // 同步锁：650ms叮咚盲区内也能阻止重复触发
   let lastCallTimestamp = null;
   let lastCallTimeString = '--:--';
+  let lastCallNumber = null;   // v4.7: 最后正式叫号的号码，用于快捷回拨
+  let recallKey = 'Multiply';  // v4.7: 回拨快捷键，默认 *（Multiply）
+  let feedbackTimers = {};     // v4.7.1: 防抖池，防止长按/连击堆积定时器卡死按钮
 
   // ─── 盲打状态标志 ─────────────────────────────────────
   // isTypingDuringAnnounce：播报中是否已开始盲打输入
@@ -1527,7 +1597,7 @@
     const tStr = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
 
     lastCallTimestamp  = now;
-    lastCallNumber     = numToSay;
+    if (!fromHistoryValue) lastCallNumber = numToSay;  // v4.7: 仅正式叫号更新回拨目标
     lastCallTimeString = tStr;
     document.getElementById('lastNumLabel').textContent = '#' + numToSay;
 
@@ -1639,6 +1709,10 @@
     document.getElementById('dingVal').textContent     = savedDing;
     document.getElementById('announcePrefix').value    = localStorage.getItem('announcePrefix') || '';
     document.getElementById('announceSuffix').value    = localStorage.getItem('announceSuffix') || '';
+    // v4.7: 加载回拨快捷键
+    const savedRecall = localStorage.getItem('recallKey');
+    recallKey = (savedRecall !== null) ? savedRecall : 'Multiply';
+    updateRecallKeyUI();
   }
 
   function saveAndClose() {
@@ -1648,6 +1722,7 @@
     localStorage.setItem('ding',            document.getElementById('dingRange').value);
     localStorage.setItem('announcePrefix',  document.getElementById('announcePrefix').value);
     localStorage.setItem('announceSuffix',  document.getElementById('announceSuffix').value);
+    localStorage.setItem('recallKey',       recallKey);  // v4.7
     toggleSettings();
   }
 
@@ -1657,6 +1732,7 @@
     orderHistory       = [];
     lastCallTimestamp  = null;
     lastCallTimeString = '--:--';
+    lastCallNumber     = null;   // v4.7: 清空回拨目标
     currentVal         = '';
 
     document.getElementById('displayNum').textContent    = '—';
@@ -1763,6 +1839,36 @@
   document.getElementById('testVoiceBtn').addEventListener('click', testVoice);
   document.getElementById('resetBtn').addEventListener('click', resetDayData);
 
+  // ─── v4.7: 回拨快捷键 UI ──────────────────────────────
+  // data-recall 对应 e.key 值：'Divide'='/', 'Multiply'='*', 'Decimal'='.'
+  const RECALL_KEY_MAP = {
+    'Divide':   ['/', 'Divide'],
+    'Multiply': ['*', 'Multiply'],
+    'Decimal':  ['.', 'Decimal']
+  };
+
+  function updateRecallKeyUI() {
+    document.querySelectorAll('.recall-key-btn').forEach(btn => {
+      btn.classList.toggle('selected', btn.dataset.recall === recallKey);
+    });
+    const noneLabel = document.getElementById('recallNoneLabel');
+    if (!recallKey) {
+      noneLabel.textContent = 'No shortcut assigned — all three keys unbound';
+      noneLabel.classList.add('active');
+    } else {
+      noneLabel.textContent = 'Tap again to deselect · no shortcut assigned when none selected';
+      noneLabel.classList.remove('active');
+    }
+  }
+
+  document.querySelectorAll('.recall-key-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = btn.dataset.recall;
+      recallKey = (recallKey === val) ? '' : val;  // 再点取消
+      updateRecallKeyUI();
+    });
+  });
+
   document.getElementById('dingRange').addEventListener('input', e => {
     document.getElementById('dingVal').textContent = e.target.value;
   });
@@ -1827,28 +1933,35 @@
   });
   setTimeout(() => _iosKb.focus(), 300);
 
-  // ─── 物理按键视觉反馈 ─────────────────────────────────
+  // ─── 物理按键视觉反馈 v4.7.1 ─────────────────────────
+  // feedbackTimers 防抖池：长按/连击时先掐掉旧计时器再重新计时，防止堆积卡死
   function keyFeedback(...selectors) {
     selectors.forEach(sel => {
       const el = sel.startsWith('#')
         ? document.getElementById(sel.slice(1))
         : document.querySelector(sel);
       if (!el) return;
-      const origBg = el.style.backgroundColor;
-      const origColor = el.style.color;
-      const origTrans = el.style.transform;
+
+      // 有旧计时器先掐死，避免"恢复样式"回调在错误时机触发
+      if (feedbackTimers[sel]) {
+        clearTimeout(feedbackTimers[sel]);
+        delete feedbackTimers[sel];
+      }
+
       el.style.backgroundColor = '#ffffff';
       el.style.color = '#000000';
       el.style.transform = 'scale(0.85)';
       el.style.transition = 'none';
-      setTimeout(() => {
-        el.style.backgroundColor = origBg;
-        el.style.color = origColor;
-        el.style.transform = origTrans;
+      el.classList.add('active-feedback');
+
+      feedbackTimers[sel] = setTimeout(() => {
+        el.style.backgroundColor = '';
+        el.style.color = '';
+        el.style.transform = '';
         el.style.transition = '';
         el.classList.remove('active-feedback');
-      }, 100);
-      el.classList.add('active-feedback');
+        delete feedbackTimers[sel];
+      }, 120);
     });
   }
 
@@ -1878,6 +1991,15 @@
     else if (e.key === 'Escape') {
       closeLogOverlay();
       if (document.getElementById('settingsOverlay').classList.contains('show')) toggleSettings();
+    }
+    // ─── v4.7: 回拨快捷键 ─────────────────────────────
+    else if (recallKey && RECALL_KEY_MAP[recallKey] &&
+             (RECALL_KEY_MAP[recallKey].includes(e.key) || RECALL_KEY_MAP[recallKey].includes(e.code))) {
+      e.preventDefault();
+      if (!lastCallNumber) return;
+      if (isAnnouncing || window.speechSynthesis.speaking) return;
+      triggerAutoKanban(); closeLogOverlay();
+      announce(lastCallNumber);
     }
   });
 
