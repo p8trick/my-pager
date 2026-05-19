@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Order Terminal V4.7.1</title>
+  <title>Order Terminal V4.7.2</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
   <style>
     /* ─── Design Tokens ─────────────────────────────── */
@@ -967,7 +967,7 @@
 
   <!-- 顶部标题栏 -->
   <header class="header">
-    <h1>ORDER TERMINAL V4.7.1</h1>
+    <h1>ORDER TERMINAL V4.7.2</h1>
     <div style="display:flex; gap:8px;">
       <button id="kanbanBtn">⌨️ AUTO</button>
       <button id="settingsBtn">SETTINGS</button>
@@ -1104,7 +1104,7 @@
 
   <div class="help-overlay" id="helpOverlay">
     <div class="help-header">
-      <h2>GUIDE V4.7.1</h2>
+      <h2>GUIDE V4.7.2</h2>
       <button class="log-close-btn" id="helpCloseBtn">CLOSE</button>
     </div>
     <div class="help-content">
@@ -1216,7 +1216,7 @@
   let lastCallTimeString = '--:--';
   let lastCallNumber = null;   // v4.7: 最后正式叫号的号码，用于快捷回拨
   let recallKey = 'Multiply';  // v4.7: 回拨快捷键，默认 *（Multiply）
-  let feedbackTimers = {};     // v4.7.1: 防抖池，防止长按/连击堆积定时器卡死按钮
+  let feedbackTimers = {};     // v4.7.2: 防抖池，防止长按/连击堆积定时器卡死按钮
 
   // ─── 盲打状态标志 ─────────────────────────────────────
   // isTypingDuringAnnounce：播报中是否已开始盲打输入
@@ -1842,9 +1842,9 @@
   // ─── v4.7: 回拨快捷键 UI ──────────────────────────────
   // data-recall 对应 e.key 值：'Divide'='/', 'Multiply'='*', 'Decimal'='.'
   const RECALL_KEY_MAP = {
-    'Divide':   ['/', 'Divide'],
-    'Multiply': ['*', 'Multiply'],
-    'Decimal':  ['.', 'Decimal']
+    'Divide':   ['/', 'NumpadDivide'],
+    'Multiply': ['*', 'NumpadMultiply'],
+    'Decimal':  ['.', 'NumpadDecimal']
   };
 
   function updateRecallKeyUI() {
@@ -1933,7 +1933,7 @@
   });
   setTimeout(() => _iosKb.focus(), 300);
 
-  // ─── 物理按键视觉反馈 v4.7.1 ─────────────────────────
+  // ─── 物理按键视觉反馈 v4.7.2 ─────────────────────────
   // feedbackTimers 防抖池：长按/连击时先掐掉旧计时器再重新计时，防止堆积卡死
   function keyFeedback(...selectors) {
     selectors.forEach(sel => {
@@ -2013,6 +2013,9 @@
   });
 
   // ─── 初始化 ───────────────────────────────────────────
+  // v4.7.2: 请求持久化存储，PWA 安装后防止 iOS 在磁盘紧张时自动清除 localStorage
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
+
   window.speechSynthesis.onvoiceschanged = initVoices;
   loadSettings();
   initVoices();
