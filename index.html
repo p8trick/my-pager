@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Order Terminal V4.7.2</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+  <title>Order Terminal V4.9.0</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
     /* ─── Design Tokens ─────────────────────────────── */
     :root {
@@ -176,10 +176,11 @@
 
     .display-number {
       font-family: 'JetBrains Mono', monospace;
-      font-size: clamp(90px, 16dvh, 160px);
+      font-size: clamp(84px, 15dvh, 150px);
       color: var(--accent);
       text-align: right;
       line-height: 1;
+      font-variant-numeric: tabular-nums;
     }
 
     /* ─── History Bar ────────────────────────────────── */
@@ -401,6 +402,64 @@
       font-family: 'JetBrains Mono', monospace;
     }
 
+    /* ─── 7-Day Efficiency Chart v4.8.2 ─────────────────── */
+    .chart-panel {
+      flex-shrink: 0;
+      padding: 14px 20px 10px;
+      border-bottom: 1px solid #1a1a1a;
+      background: #050505;
+    }
+
+    .chart-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      color: #444;
+      letter-spacing: 0.12em;
+      margin-bottom: 10px;
+    }
+
+    .chart-bars {
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-start;
+      height: 70px;
+      gap: 6px;
+    }
+
+    .chart-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      width: calc((100% - 36px) / 7);
+      max-width: 48px;
+      flex-shrink: 0;
+      height: 100%;
+      gap: 3px;
+    }
+
+    .chart-val {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .chart-bar {
+      width: 100%;
+      border-radius: 3px 3px 0 0;
+      min-height: 2px;
+      transition: height 0.3s ease;
+    }
+
+    .chart-date {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      color: #444;
+      margin-top: 4px;
+      white-space: nowrap;
+    }
+
     /* ─── Settings Overlay ───────────────────────────── */
     .settings-overlay {
       position: fixed;
@@ -599,6 +658,108 @@
 
     .recall-key-none.active {
       color: var(--danger);
+    }
+
+    /* ─── Font Picker Overlay ────────────────────────── */
+    .font-picker-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.82);
+      z-index: 300;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .font-picker-overlay.show {
+      display: flex;
+    }
+
+    .font-picker-sheet {
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-bottom: none;
+      border-radius: 20px 20px 0 0;
+      width: 100%;
+      max-width: 480px;
+      max-height: 72dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .font-picker-header {
+      padding: 18px 20px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      color: #555;
+      border-bottom: 1px solid #1e1e1e;
+      flex-shrink: 0;
+    }
+
+    .font-picker-list {
+      overflow-y: auto;
+      flex: 1;
+      padding: 8px 0;
+    }
+
+    .font-picker-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      cursor: pointer;
+      border-bottom: 1px solid #1a1a1a;
+      transition: background 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .font-picker-item:last-child {
+      border-bottom: none;
+    }
+
+    .font-picker-item:active {
+      background: #1a1a1a;
+    }
+
+    .font-picker-item.selected {
+      background: #1a1a00;
+    }
+
+    .font-picker-item.selected .font-picker-name {
+      color: var(--accent);
+    }
+
+    .font-picker-name {
+      font-size: 13px;
+      color: #888;
+      font-family: 'Outfit', sans-serif;
+      flex-shrink: 0;
+      width: 140px;
+    }
+
+    .font-picker-preview {
+      font-size: 38px;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+      text-align: right;
+      flex: 1;
+    }
+
+    .font-picker-close {
+      margin: 10px 16px 20px;
+      padding: 14px;
+      background: none;
+      border: 1px solid #333;
+      color: #666;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      flex-shrink: 0;
     }
 
     .save-btn {
@@ -967,7 +1128,7 @@
 
   <!-- 顶部标题栏 -->
   <header class="header">
-    <h1>ORDER TERMINAL V4.7.2</h1>
+    <h1>ORDER TERMINAL V4.9.0</h1>
     <div style="display:flex; gap:8px;">
       <button id="kanbanBtn">⌨️ AUTO</button>
       <button id="settingsBtn">SETTINGS</button>
@@ -1039,9 +1200,14 @@
       <h2>DAILY LOG</h2>
       <button class="log-close-btn" id="logCloseBtn">CLOSE</button>
     </div>
+    <!-- v4.8.2: 7天趋势图 -->
+    <div class="chart-panel">
+      <div class="chart-title">7-DAY EFFICIENCY TREND  AVG INTERVAL (min)</div>
+      <div class="chart-bars" id="chartBars"></div>
+    </div>
     <div class="log-content" id="logContent"></div>
     <div class="log-footer">
-      <div class="avg-label">AVERAGE INTERVAL (≤20m)</div>
+      <div class="avg-label">TODAY'S AVERAGE INTERVAL (≤20m)</div>
       <div class="avg-value" id="avgValue">0.0m</div>
     </div>
   </div>
@@ -1053,6 +1219,13 @@
         <label>Voice Engine</label>
         <select id="voiceSelect"></select>
         <button class="test-btn" id="testVoiceBtn">🔊 TEST VOICE & DING</button>
+      </div>
+      <div class="setting-item">
+        <label>Display Number Font</label>
+        <button class="test-btn" id="fontPickerBtn" style="margin-top:0;">Aa CHOOSE FONT</button>
+        <div style="margin-top:8px;font-size:11px;color:#444;letter-spacing:0.05em;">
+          Current: <span id="fontPickerLabel" style="color:#666;">JetBrains Mono</span> &nbsp;·&nbsp; Preview: <span id="fontPickerPreview" style="color:var(--accent);font-size:16px;font-weight:700;">88</span>
+        </div>
       </div>
       <div class="setting-item">
         <label>Announce Prefix（数字前）</label>
@@ -1102,9 +1275,18 @@
     </div>
   </div>
 
+  <!-- 字体选择弹窗 v4.8.0 -->
+  <div class="font-picker-overlay" id="fontPickerOverlay">
+    <div class="font-picker-sheet">
+      <div class="font-picker-header">SELECT DISPLAY FONT</div>
+      <div class="font-picker-list" id="fontPickerList"></div>
+      <button class="font-picker-close" id="fontPickerClose">DONE</button>
+    </div>
+  </div>
+
   <div class="help-overlay" id="helpOverlay">
     <div class="help-header">
-      <h2>GUIDE V4.7.2</h2>
+      <h2>GUIDE V4.9.0</h2>
       <button class="log-close-btn" id="helpCloseBtn">CLOSE</button>
     </div>
     <div class="help-content">
@@ -1140,6 +1322,27 @@
         <div class="help-row"><span class="help-key">Backspace / Delete</span><span class="help-desc">Clear / interrupt · 清空或中断播报</span></div>
         <div class="help-row"><span class="help-key">Esc</span><span class="help-desc">Close log or settings panel · 关闭日志或设置面板</span></div>
         <div class="help-row"><span class="help-key">iOS Activate</span><span class="help-desc">Tap screen once to activate keyboard · 首次使用前触摸屏幕一次即可激活，之后自动保持</span></div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-title">📊 7-DAY EFFICIENCY REPORT 出餐效率报表 <span style="color:var(--accent);font-size:10px;margin-left:6px;">v4.9</span></div>
+        <div class="help-row"><span class="help-key">Bar Chart</span><span class="help-desc">Top of Daily Log shows avg interval per day · last 6 days + TODAY live column · 日志顶部显示过去6天历史柱 + 今日实时柱</span></div>
+        <div class="help-row"><span class="help-key">TODAY</span><span class="help-desc">Rightmost hollow-border column · refreshes every time log is opened · 最右侧空心边框柱，每次打开日志实时刷新</span></div>
+        <div class="help-row"><span class="help-key">First Launch</span><span class="help-desc">Chart pre-fills 6 zero-days on first use so the layout is always complete · 首次使用自动补满6天零数据，图表始终完整</span></div>
+        <div class="help-row"><span class="help-key" style="color:var(--history)">≤5m</span><span class="help-desc">Green · efficient service · 绿色：出餐效率高</span></div>
+        <div class="help-row"><span class="help-key" style="color:#FFD60A">6–10m</span><span class="help-desc">Yellow · normal pace · 黄色：正常节奏</span></div>
+        <div class="help-row"><span class="help-key" style="color:var(--danger)">11–20m</span><span class="help-desc">Red · slow · 红色：出餐较慢</span></div>
+        <div class="help-row"><span class="help-key" style="color:#333">—</span><span class="help-desc">Flat bar: no data that day · 扁平柱：当天无数据</span></div>
+        <div class="help-row"><span class="help-key">Auto Reset</span><span class="help-desc">Today's log clears automatically on first launch of each new day · history chips also cleared · 每天首次启动自动清空今日记录和历史磁贴</span></div>
+        <div class="help-row"><span class="help-key">Gap Fill</span><span class="help-desc">Missed days auto-filled with flat zero bars · 中断天数自动补零保持时间线连续</span></div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-title">🔤 DISPLAY FONT 数字字体 <span style="color:var(--accent);font-size:10px;margin-left:6px;">NEW v4.8</span></div>
+        <div class="help-row"><span class="help-key">6 Fonts</span><span class="help-desc">All 6 typefaces guarantee tabular (equal-width) digit rendering · 6款字体均保证数字等宽显示</span></div>
+        <div class="help-row"><span class="help-key">LCD Style</span><span class="help-desc">Share Tech Mono for retro terminal feel · 复古液晶终端风格</span></div>
+        <div class="help-row"><span class="help-key">Preview</span><span class="help-desc">Each option shows "88" in its own typeface before you commit · 每款字体用自身渲染 88 供直观对比</span></div>
+        <div class="help-row"><span class="help-key">Auto-save</span><span class="help-desc">Saved instantly on close · persists across sessions · 关闭弹窗时自动保存，重启后保留</span></div>
       </div>
 
       <div class="help-section">
@@ -1217,6 +1420,8 @@
   let lastCallNumber = null;   // v4.7: 最后正式叫号的号码，用于快捷回拨
   let recallKey = 'Multiply';  // v4.7: 回拨快捷键，默认 *（Multiply）
   let feedbackTimers = {};     // v4.7.2: 防抖池，防止长按/连击堆积定时器卡死按钮
+  let displayFont = 'JetBrains Mono';  // v4.8.0: 主显示数字字体，默认 JetBrains Mono
+  let history7Days = [];               // v4.8.2: 过去7天效率数据 [{date:'M/D', avg:2.5}, ...]
 
   // ─── 盲打状态标志 ─────────────────────────────────────
   // isTypingDuringAnnounce：播报中是否已开始盲打输入
@@ -1602,8 +1807,9 @@
     document.getElementById('lastNumLabel').textContent = '#' + numToSay;
 
     if (!fromHistoryValue) {
-      callLog.push({ number: numToSay, timeStr: tStr, interval: gap });
+      callLog.push({ number: numToSay, timeStr: tStr, interval: gap, timestamp: Date.now() });
       if (callLog.length > 300) callLog.shift();
+      localStorage.setItem('callLog', JSON.stringify(callLog));  // v4.8.5: 持久化
     }
     updateTimeDisplay();
 
@@ -1669,14 +1875,66 @@
     document.getElementById('logOverlay').classList.remove('show');
   }
 
+  // v4.8.2: 柱状图颜色（复用 intervalColor 色阶）
+  function barColor(avg) {
+    if (avg === 0)   return '#2a2a2a';          // 零数据：深灰
+    if (avg <= 5)    return 'var(--history)';   // 1–5m 绿
+    if (avg <= 10)   return '#FFD60A';          // 6–10m 黄
+    if (avg <= 20)   return 'var(--danger)';    // 11–20m 红
+    return '#888';                              // 21m+ 灰
+  }
+
+  function renderChart() {
+    const container = document.getElementById('chartBars');
+    if (!container) return;
+    container.innerHTML = '';
+
+    // 计算今日实时均值
+    const todayIntervals = callLog.filter(r => r.interval > 0 && r.interval <= 20).map(r => r.interval);
+    const todayAvg = todayIntervals.length >= 1
+      ? parseFloat((todayIntervals.reduce((a,b) => a+b, 0) / todayIntervals.length).toFixed(1))
+      : 0;
+
+    // 合并历史7天 + 今日，共最多8列（用于计算 maxAvg），但只渲染7天历史+今日=8列
+    // 取最近6条历史（为今日腾出第7位）
+    const displayDays = history7Days.slice(-6);
+    const allAvgs = [...displayDays.map(d => d.avg), todayAvg];
+    const maxAvg  = Math.max(...allAvgs, 1);
+
+    // 渲染历史柱（最多6条）
+    displayDays.forEach(day => {
+      const isZero = day.avg === 0;
+      const barH   = isZero ? 2 : Math.max(4, Math.round((day.avg / maxAvg) * 56));
+      const col    = document.createElement('div');
+      col.className = 'chart-col';
+      col.innerHTML =
+        `<div class="chart-val" style="color:${isZero ? '#333' : barColor(day.avg)}">${isZero ? '—' : day.avg + 'm'}</div>` +
+        `<div class="chart-bar" style="height:${barH}px;background:${barColor(day.avg)}"></div>` +
+        `<div class="chart-date">${day.date}</div>`;
+      container.appendChild(col);
+    });
+
+    // 渲染今日实时柱（始终存在，半透明边框风格区别历史柱）
+    const todayIsZero = todayAvg === 0;
+    const todayBarH   = todayIsZero ? 2 : Math.max(4, Math.round((todayAvg / maxAvg) * 56));
+    const todayColor  = todayIsZero ? '#333' : barColor(todayAvg);
+    const todayCol    = document.createElement('div');
+    todayCol.className = 'chart-col';
+    todayCol.innerHTML =
+      `<div class="chart-val" style="color:${todayIsZero ? '#444' : todayColor}">${todayIsZero ? '—' : todayAvg + 'm'}</div>` +
+      `<div class="chart-bar" style="height:${todayBarH}px;background:transparent;border:1.5px solid ${todayColor};border-bottom:none;box-sizing:border-box;"></div>` +
+      `<div class="chart-date" style="color:var(--accent);font-size:8px;">TODAY</div>`;
+    container.appendChild(todayCol);
+  }
+
   function renderLogContent() {
+    renderChart();
     const container = document.getElementById('logContent');
     container.innerHTML = '';
     let total = 0, count = 0;
 
     callLog.slice().reverse().forEach(item => {
       const gapColor = intervalColor(item.interval);
-
       const row = document.createElement('div');
       row.className = 'log-item';
       row.innerHTML = `
@@ -1713,6 +1971,10 @@
     const savedRecall = localStorage.getItem('recallKey');
     recallKey = (savedRecall !== null) ? savedRecall : 'Multiply';
     updateRecallKeyUI();
+    // v4.8.0: 加载字体设置
+    const savedFont = localStorage.getItem('displayFont');
+    if (savedFont) displayFont = savedFont;
+    applyDisplayFont();
   }
 
   function saveAndClose() {
@@ -1723,6 +1985,7 @@
     localStorage.setItem('announcePrefix',  document.getElementById('announcePrefix').value);
     localStorage.setItem('announceSuffix',  document.getElementById('announceSuffix').value);
     localStorage.setItem('recallKey',       recallKey);  // v4.7
+    localStorage.setItem('displayFont',     displayFont); // v4.8.0
     toggleSettings();
   }
 
@@ -1732,8 +1995,10 @@
     orderHistory       = [];
     lastCallTimestamp  = null;
     lastCallTimeString = '--:--';
-    lastCallNumber     = null;   // v4.7: 清空回拨目标
+    lastCallNumber     = null;
     currentVal         = '';
+    localStorage.removeItem('callLog');                              // v4.8.5: 清除持久化
+    localStorage.setItem('history7Days', JSON.stringify(history7Days)); // history7Days 绝对保留
 
     document.getElementById('displayNum').textContent    = '—';
     document.getElementById('lastNumLabel').textContent  = '#--';
@@ -1838,6 +2103,59 @@
   document.getElementById('saveBtn').addEventListener('click', saveAndClose);
   document.getElementById('testVoiceBtn').addEventListener('click', testVoice);
   document.getElementById('resetBtn').addEventListener('click', resetDayData);
+
+  // ─── v4.8.0: 字体选择器 ───────────────────────────────
+  const FONT_LIST = [
+    { name: 'Outfit',          label: 'Outfit (Default)',  css: "'Outfit', sans-serif" },
+    { name: 'JetBrains Mono',  label: 'JetBrains Mono',   css: "'JetBrains Mono', monospace" },
+    { name: 'Share Tech Mono', label: 'Share Tech Mono',  css: "'Share Tech Mono', monospace" },
+    { name: 'Helvetica Neue',  label: 'Helvetica Neue',   css: "'Helvetica Neue', sans-serif" },
+    { name: 'Georgia',         label: 'Georgia',           css: "Georgia, serif" },
+    { name: 'Courier New',     label: 'Courier New',       css: "'Courier New', monospace" },
+  ];
+
+  function applyDisplayFont() {
+    const entry = FONT_LIST.find(f => f.name === displayFont) || FONT_LIST[0];
+    const el = document.getElementById('displayNum');
+    el.style.fontFamily = entry.css;
+    el.style.fontFeatureSettings = '"tnum" 1';  // v4.8.1: 双重等宽保障
+    const label = document.getElementById('fontPickerLabel');
+    const preview = document.getElementById('fontPickerPreview');
+    if (label)   label.textContent = entry.label;
+    if (preview) { preview.style.fontFamily = entry.css; preview.textContent = '88'; }
+  }
+
+  function buildFontPickerList() {
+    const list = document.getElementById('fontPickerList');
+    list.innerHTML = '';
+    FONT_LIST.forEach(f => {
+      const item = document.createElement('div');
+      item.className = 'font-picker-item' + (f.name === displayFont ? ' selected' : '');
+      item.innerHTML =
+        `<span class="font-picker-name">${f.label}</span>` +
+        `<span class="font-picker-preview" style="font-family:${f.css}">88</span>`;
+      item.addEventListener('click', () => {
+        displayFont = f.name;
+        applyDisplayFont();
+        // 更新选中高亮
+        list.querySelectorAll('.font-picker-item').forEach(el => el.classList.remove('selected'));
+        item.classList.add('selected');
+        list.querySelectorAll('.font-picker-name').forEach(el => el.style.color = '');
+        item.querySelector('.font-picker-name').style.color = 'var(--accent)';
+      });
+      list.appendChild(item);
+    });
+  }
+
+  document.getElementById('fontPickerBtn').addEventListener('click', () => {
+    buildFontPickerList();
+    document.getElementById('fontPickerOverlay').classList.add('show');
+  });
+
+  document.getElementById('fontPickerClose').addEventListener('click', () => {
+    document.getElementById('fontPickerOverlay').classList.remove('show');
+    localStorage.setItem('displayFont', displayFont);
+  });
 
   // ─── v4.7: 回拨快捷键 UI ──────────────────────────────
   // data-recall 对应 e.key 值：'Divide'='/', 'Multiply'='*', 'Decimal'='.'
@@ -2013,6 +2331,76 @@
   });
 
   // ─── 初始化 ───────────────────────────────────────────
+  // v4.8.5: 跨天检测、自动结算昨日、滚动7天报表
+  // 修复：callLog 先从 localStorage 恢复，结算完成后再清空；断层补零日期算法重写
+  (function checkNewDay() {
+    const toDateStr = d => `${d.getMonth()+1}/${d.getDate()}`;
+    const todayStr  = toDateStr(new Date());
+
+    // 1. 恢复持久化数据（必须在结算前恢复，否则结算时 callLog 为空）
+    try { history7Days = JSON.parse(localStorage.getItem('history7Days') || '[]'); } catch(e) { history7Days = []; }
+    try { callLog      = JSON.parse(localStorage.getItem('callLog')      || '[]'); } catch(e) { callLog = []; }
+
+    // v4.9.0: 首次使用时往前补6天零数据，确保图表始终显示完整7格
+    if (history7Days.length === 0) {
+      const now = new Date();
+      for (let i = 6; i >= 1; i--) {
+        const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate() - i));
+        history7Days.push({ date: `${d.getUTCMonth()+1}/${d.getUTCDate()}`, avg: 0 });
+      }
+      localStorage.setItem('history7Days', JSON.stringify(history7Days));
+    }
+
+    const lastDate = localStorage.getItem('lastActiveDate');
+
+    if (lastDate && lastDate !== todayStr) {
+      // 2. 先结算（此时 callLog 已从 localStorage 恢复，数据完整）
+      const intervals = callLog.filter(r => r.interval > 0 && r.interval <= 20).map(r => r.interval);
+      const avg = (intervals.length >= 1)
+        ? parseFloat((intervals.reduce((a,b) => a+b, 0) / intervals.length).toFixed(1))
+        : 0;
+
+      // 3. 断层补零：计算 lastDate 到 today 之间相差的天数
+      //    用 UTC 日期避免夏令时干扰；跨年处理：若 lastDate 月份 > today 月份则属于上一年
+      const toUTC = s => {
+        const [m, d] = s.split('/').map(Number);
+        const yr = new Date().getFullYear();
+        // 跨年修正：lastDate 的月份若大于今天的月份，说明它属于上一年
+        const year = (s === lastDate && m > new Date().getMonth() + 1) ? yr - 1 : yr;
+        return Date.UTC(year, m - 1, d);
+      };
+      const msDay  = 86400000;
+      const gapDays = Math.round((toUTC(todayStr) - toUTC(lastDate)) / msDay); // ≥1
+
+      // gapDays=1：昨天就是 lastDate，直接追加；
+      // gapDays>1：lastDate+1 ~ lastDate+(gapDays-1) 是中间空白天，按顺序补零，最后追加 lastDate 本身
+      for (let i = 1; i < gapDays; i++) {
+        // lastDate 之后第 i 天（i=1 是 lastDate 的次日，依此类推）
+        const d = new Date(toUTC(lastDate) + i * msDay);
+        history7Days.push({ date: toDateStr(d), avg: 0 });
+      }
+      // 追加 lastDate（昨日或更早的最后活跃日）的结算结果
+      history7Days.push({ date: lastDate, avg });
+
+      // 4. 滚动，最多保留7条
+      while (history7Days.length > 7) history7Days.shift();
+      localStorage.setItem('history7Days', JSON.stringify(history7Days));
+
+      // 5. 结算完成后，清空今日记录迎接新一天
+      callLog      = [];
+      orderHistory = [];
+      localStorage.removeItem('callLog');
+      renderHistory();
+    }
+
+    // 6. 更新活跃日期
+    localStorage.setItem('lastActiveDate', todayStr);
+  })();
+
+  // v4.8.2: 持久化 history7Days — 页面卸载前保存
+  window.addEventListener('pagehide', () => {
+    localStorage.setItem('history7Days', JSON.stringify(history7Days));
+  });
   // v4.7.2: 请求持久化存储，PWA 安装后防止 iOS 在磁盘紧张时自动清除 localStorage
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
 
