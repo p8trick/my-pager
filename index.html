@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Order Terminal V4.9.0</title>
+  <title>Order Terminal V4.9.1</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
     /* ─── Design Tokens ─────────────────────────────── */
@@ -1128,7 +1128,7 @@
 
   <!-- 顶部标题栏 -->
   <header class="header">
-    <h1>ORDER TERMINAL V4.9.0</h1>
+    <h1>ORDER TERMINAL V4.9.1</h1>
     <div style="display:flex; gap:8px;">
       <button id="kanbanBtn">⌨️ AUTO</button>
       <button id="settingsBtn">SETTINGS</button>
@@ -1286,7 +1286,7 @@
 
   <div class="help-overlay" id="helpOverlay">
     <div class="help-header">
-      <h2>GUIDE V4.9.0</h2>
+      <h2>GUIDE V4.9.1</h2>
       <button class="log-close-btn" id="helpCloseBtn">CLOSE</button>
     </div>
     <div class="help-content">
@@ -1922,7 +1922,7 @@
     todayCol.className = 'chart-col';
     todayCol.innerHTML =
       `<div class="chart-val" style="color:${todayIsZero ? '#444' : todayColor}">${todayIsZero ? '—' : todayAvg + 'm'}</div>` +
-      `<div class="chart-bar" style="height:${todayBarH}px;background:transparent;border:1.5px solid ${todayColor};border-bottom:none;box-sizing:border-box;"></div>` +
+      `<div class="chart-bar" style="height:${todayBarH}px;background:repeating-linear-gradient(45deg,${todayColor},${todayColor} 3px,transparent 3px,transparent 7px);border:1px solid ${todayColor};box-sizing:border-box;opacity:${todayIsZero ? 0.3 : 1}"></div>` +
       `<div class="chart-date" style="color:var(--accent);font-size:8px;">TODAY</div>`;
     container.appendChild(todayCol);
   }
