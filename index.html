@@ -5,20 +5,108 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Order Terminal V4.9.1</title>
+  <title>Order Terminal V4.9.3</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
     /* ─── Design Tokens ─────────────────────────────── */
     :root {
-      --bg:      #000000;
-      --card:    #111111;
-      --key:     #333333;
-      --accent:  #FF9F0A;
-      --history: #94FF00;
-      --text:    #ffffff;
-      --danger:  #FF453A;
-      --next:    #333333;
+      --bg:        #000000;
+      --card:      #111111;
+      --key:       #333333;
+      --accent:    #FF9F0A;
+      --history:   #94FF00;
+      --text:      #ffffff;
+      --danger:    #FF453A;
+      --next:      #333333;
+      --glow-dim:  rgba(255, 159, 10, 0.08);
+      --glow-mid:  rgba(255, 159, 10, 0.18);
+      --glow-full: rgba(255, 159, 10, 0.38);
+      --play-glow: rgba(148, 255, 0, 0.35);
+      --play-inner:rgba(148, 255, 0, 0.10);
     }
+
+    /* ─── Themes v4.9.2 ─────────────────────────────── */
+    [data-theme="slate"] {
+      --bg:        #0a0a0f;
+      --card:      #13131e;
+      --key:       #1e1e2e;
+      --accent:    #6E7BFF;
+      --history:   #3DD68C;
+      --text:      #e8e8f0;
+      --danger:    #FF6B6B;
+      --next:      #1e1e2e;
+      --glow-dim:  rgba(110, 123, 255, 0.08);
+      --glow-mid:  rgba(110, 123, 255, 0.18);
+      --glow-full: rgba(110, 123, 255, 0.40);
+      --play-glow: rgba(61, 214, 140, 0.35);
+      --play-inner:rgba(61, 214, 140, 0.10);
+    }
+    [data-theme="graphite"] {
+      --bg:        #111111;
+      --card:      #1c1c1c;
+      --key:       #2a2a2a;
+      --accent:    #5AC8FA;
+      --history:   #32D74B;
+      --text:      #ffffff;
+      --danger:    #FF6B6B;
+      --next:      #2a2a2a;
+      --glow-dim:  rgba(90, 200, 250, 0.08);
+      --glow-mid:  rgba(90, 200, 250, 0.18);
+      --glow-full: rgba(90, 200, 250, 0.40);
+      --play-glow: rgba(50, 215, 75, 0.35);
+      --play-inner:rgba(50, 215, 75, 0.10);
+    }
+    [data-theme="crimson"] {
+      --bg:        #0d0005;
+      --card:      #1a0010;
+      --key:       #2a0018;
+      --accent:    #FF6B6B;
+      --history:   #FFD93D;
+      --text:      #fff0f3;
+      --danger:    #FF453A;
+      --next:      #2a0018;
+      --glow-dim:  rgba(255, 107, 107, 0.08);
+      --glow-mid:  rgba(255, 107, 107, 0.18);
+      --glow-full: rgba(255, 107, 107, 0.40);
+      --play-glow: rgba(255, 217, 61, 0.35);
+      --play-inner:rgba(255, 217, 61, 0.10);
+    }
+
+    /* ─── Theme Picker ───────────────────────────────── */
+    .theme-swatches {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .theme-swatch {
+      flex: 1;
+      height: 44px;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      font-family: 'Outfit', sans-serif;
+      transition: border-color 0.15s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .theme-swatch:active { transform: scale(0.92); }
+
+    .theme-swatch.selected {
+      border-color: #ffffff;
+      box-shadow: 0 0 10px rgba(255,255,255,0.2);
+    }
+
+    .theme-swatch[data-t="amber"]   { background: linear-gradient(135deg, #111 50%, #FF9F0A 50%); color: #fff; }
+    .theme-swatch[data-t="slate"]   { background: linear-gradient(135deg, #13131e 50%, #6E7BFF 50%); color: #fff; }
+    .theme-swatch[data-t="graphite"]{ background: linear-gradient(135deg, #1c1c1c 50%, #5AC8FA 50%); color: #fff; }
+    .theme-swatch[data-t="crimson"] { background: linear-gradient(135deg, #1a0010 50%, #FF6B6B 50%); color: #fff; }
 
     /* ─── Reset ──────────────────────────────────────── */
     *, *::before, *::after {
@@ -105,8 +193,8 @@
       padding: 0 25px;
       position: relative;
       overflow: hidden;
-      border: 1px solid rgba(255, 159, 10, 0.1);
-      box-shadow: 0 0 15px rgba(255, 159, 10, 0.05);
+      border: 1px solid var(--glow-dim);
+      box-shadow: 0 0 15px var(--glow-dim);
       animation: breathe 4s ease-in-out infinite;
       transition: all 0.1s ease;
     }
@@ -114,17 +202,17 @@
     .display.playing {
       animation: none;
       border-color: var(--history);
-      box-shadow: 0 0 30px rgba(148, 255, 0, 0.4), inset 0 0 20px rgba(148, 255, 0, 0.1);
+      box-shadow: 0 0 30px var(--play-glow), inset 0 0 20px var(--play-inner);
     }
 
     @keyframes breathe {
       0%, 100% {
-        box-shadow: 0 0 5px rgba(255, 159, 10, 0.02);
-        border-color: rgba(255, 159, 10, 0.1);
+        box-shadow: 0 0 5px var(--glow-dim);
+        border-color: var(--glow-dim);
       }
       50% {
-        box-shadow: 0 0 20px rgba(255, 159, 10, 0.2);
-        border-color: rgba(255, 159, 10, 0.4);
+        box-shadow: 0 0 20px var(--glow-mid);
+        border-color: var(--glow-full);
       }
     }
 
@@ -646,7 +734,7 @@
       background: #1a1a00;
       border-color: var(--accent);
       color: var(--accent);
-      box-shadow: 0 0 12px rgba(255, 159, 10, 0.25);
+      box-shadow: 0 0 12px var(--glow-mid);
     }
 
     .recall-key-none {
@@ -1128,7 +1216,7 @@
 
   <!-- 顶部标题栏 -->
   <header class="header">
-    <h1>ORDER TERMINAL V4.9.1</h1>
+    <h1>ORDER TERMINAL V4.9.3</h1>
     <div style="display:flex; gap:8px;">
       <button id="kanbanBtn">⌨️ AUTO</button>
       <button id="settingsBtn">SETTINGS</button>
@@ -1252,6 +1340,16 @@
         <button class="reset-btn" id="resetBtn">🗑 RESET ALL LOGS & HISTORY</button>
       </div>
       <div class="setting-item">
+        <label>UI Theme</label>
+        <div class="theme-swatches">
+          <button class="theme-swatch selected" data-t="amber">AMBER</button>
+          <button class="theme-swatch" data-t="slate">SLATE</button>
+          <button class="theme-swatch" data-t="graphite">GRAPHITE</button>
+          <button class="theme-swatch" data-t="crimson">CRIMSON</button>
+        </div>
+        <div style="margin-top:6px;font-size:11px;color:#444;letter-spacing:0.05em;">Saved automatically on selection</div>
+      </div>
+      <div class="setting-item">
         <label>Recall Last Call Shortcut Key · 回拨快捷键</label>
         <div class="recall-key-row">
           <button class="recall-key-btn" id="recallKeyDivide" data-recall="Divide">/</button>
@@ -1286,7 +1384,7 @@
 
   <div class="help-overlay" id="helpOverlay">
     <div class="help-header">
-      <h2>GUIDE V4.9.1</h2>
+      <h2>GUIDE V4.9.3</h2>
       <button class="log-close-btn" id="helpCloseBtn">CLOSE</button>
     </div>
     <div class="help-content">
@@ -1335,6 +1433,15 @@
         <div class="help-row"><span class="help-key" style="color:#333">—</span><span class="help-desc">Flat bar: no data that day · 扁平柱：当天无数据</span></div>
         <div class="help-row"><span class="help-key">Auto Reset</span><span class="help-desc">Today's log clears automatically on first launch of each new day · history chips also cleared · 每天首次启动自动清空今日记录和历史磁贴</span></div>
         <div class="help-row"><span class="help-key">Gap Fill</span><span class="help-desc">Missed days auto-filled with flat zero bars · 中断天数自动补零保持时间线连续</span></div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-title">🎨 UI THEME 界面主题 <span style="color:var(--accent);font-size:10px;margin-left:6px;">NEW v4.9.2</span></div>
+        <div class="help-row"><span class="help-key">Amber</span><span class="help-desc">Default · black background · orange accent · 默认主题·黑底橙色</span></div>
+        <div class="help-row"><span class="help-key">Slate</span><span class="help-desc">Deep blue-black · soft purple-blue accent · 深蓝黑·柔紫蓝</span></div>
+        <div class="help-row"><span class="help-key">Graphite</span><span class="help-desc">Dark grey · sky blue accent · green highlights · 深灰·天蓝强调色</span></div>
+        <div class="help-row"><span class="help-key">Crimson</span><span class="help-desc">Deep wine-black · coral red accent · warm yellow · 深酒红黑·珊瑚红</span></div>
+        <div class="help-row"><span class="help-key">Auto-save</span><span class="help-desc">Theme saved instantly on tap · persists across sessions · 点击即保存，重启后保留</span></div>
       </div>
 
       <div class="help-section">
@@ -1421,6 +1528,7 @@
   let recallKey = 'Multiply';  // v4.7: 回拨快捷键，默认 *（Multiply）
   let feedbackTimers = {};     // v4.7.2: 防抖池，防止长按/连击堆积定时器卡死按钮
   let displayFont = 'JetBrains Mono';  // v4.8.0: 主显示数字字体，默认 JetBrains Mono
+  let currentTheme = 'amber';          // v4.9.2: UI主题，默认 Amber
   let history7Days = [];               // v4.8.2: 过去7天效率数据 [{date:'M/D', avg:2.5}, ...]
 
   // ─── 盲打状态标志 ─────────────────────────────────────
@@ -1975,6 +2083,9 @@
     const savedFont = localStorage.getItem('displayFont');
     if (savedFont) displayFont = savedFont;
     applyDisplayFont();
+    // v4.9.2: 加载主题
+    const savedTheme = localStorage.getItem('theme') || 'amber';
+    applyTheme(savedTheme);
   }
 
   function saveAndClose() {
@@ -2103,6 +2214,20 @@
   document.getElementById('saveBtn').addEventListener('click', saveAndClose);
   document.getElementById('testVoiceBtn').addEventListener('click', testVoice);
   document.getElementById('resetBtn').addEventListener('click', resetDayData);
+
+  // ─── v4.9.2: 主题切换 ────────────────────────────────
+  function applyTheme(name) {
+    currentTheme = name;
+    document.documentElement.setAttribute('data-theme', name === 'amber' ? '' : name);
+    document.querySelectorAll('.theme-swatch').forEach(btn => {
+      btn.classList.toggle('selected', btn.dataset.t === name);
+    });
+    localStorage.setItem('theme', name);
+  }
+
+  document.querySelectorAll('.theme-swatch').forEach(btn => {
+    btn.addEventListener('click', () => applyTheme(btn.dataset.t));
+  });
 
   // ─── v4.8.0: 字体选择器 ───────────────────────────────
   const FONT_LIST = [
@@ -2251,23 +2376,27 @@
   });
   setTimeout(() => _iosKb.focus(), 300);
 
-  // ─── 物理按键视觉反馈 v4.7.2 ─────────────────────────
+  // ─── 物理按键视觉反馈 v4.9.3 ─────────────────────────
   // feedbackTimers 防抖池：长按/连击时先掐掉旧计时器再重新计时，防止堆积卡死
+  // 反馈色跟随当前主题 --accent / --bg，任何主题下对比度均清晰
   function keyFeedback(...selectors) {
+    const style  = getComputedStyle(document.documentElement);
+    const flashBg  = style.getPropertyValue('--accent').trim() || '#FF9F0A';
+    const flashFg  = style.getPropertyValue('--bg').trim()     || '#000000';
+
     selectors.forEach(sel => {
       const el = sel.startsWith('#')
         ? document.getElementById(sel.slice(1))
         : document.querySelector(sel);
       if (!el) return;
 
-      // 有旧计时器先掐死，避免"恢复样式"回调在错误时机触发
       if (feedbackTimers[sel]) {
         clearTimeout(feedbackTimers[sel]);
         delete feedbackTimers[sel];
       }
 
-      el.style.backgroundColor = '#ffffff';
-      el.style.color = '#000000';
+      el.style.backgroundColor = flashBg;
+      el.style.color = flashFg;
       el.style.transform = 'scale(0.85)';
       el.style.transition = 'none';
       el.classList.add('active-feedback');
