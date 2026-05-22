@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Order Terminal V4.9.3</title>
+  <title>Order Terminal V4.9.6</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
     /* ─── Design Tokens ─────────────────────────────── */
@@ -493,7 +493,7 @@
     /* ─── 7-Day Efficiency Chart v4.8.2 ─────────────────── */
     .chart-panel {
       flex-shrink: 0;
-      padding: 14px 20px 10px;
+      padding: 8px 20px 8px;
       border-bottom: 1px solid #1a1a1a;
       background: #050505;
     }
@@ -503,14 +503,14 @@
       font-size: 10px;
       color: #444;
       letter-spacing: 0.12em;
-      margin-bottom: 10px;
+      margin-bottom: 6px;
     }
 
     .chart-bars {
       display: flex;
       align-items: flex-end;
       justify-content: flex-start;
-      height: 70px;
+      height: 90px;
       gap: 6px;
     }
 
@@ -521,6 +521,7 @@
       justify-content: flex-end;
       width: calc((100% - 36px) / 7);
       max-width: 48px;
+      min-width: 20px;
       flex-shrink: 0;
       height: 100%;
       gap: 3px;
@@ -544,7 +545,7 @@
       font-family: 'Share Tech Mono', monospace;
       font-size: 9px;
       color: #444;
-      margin-top: 4px;
+      margin-top: 2px;
       white-space: nowrap;
     }
 
@@ -1216,7 +1217,7 @@
 
   <!-- 顶部标题栏 -->
   <header class="header">
-    <h1>ORDER TERMINAL V4.9.3</h1>
+    <h1>ORDER TERMINAL V4.9.6</h1>
     <div style="display:flex; gap:8px;">
       <button id="kanbanBtn">⌨️ AUTO</button>
       <button id="settingsBtn">SETTINGS</button>
@@ -1384,7 +1385,7 @@
 
   <div class="help-overlay" id="helpOverlay">
     <div class="help-header">
-      <h2>GUIDE V4.9.3</h2>
+      <h2>GUIDE V4.9.6</h2>
       <button class="log-close-btn" id="helpCloseBtn">CLOSE</button>
     </div>
     <div class="help-content">
@@ -1423,16 +1424,16 @@
       </div>
 
       <div class="help-section">
-        <div class="help-section-title">📊 7-DAY EFFICIENCY REPORT 出餐效率报表 <span style="color:var(--accent);font-size:10px;margin-left:6px;">v4.9</span></div>
-        <div class="help-row"><span class="help-key">Bar Chart</span><span class="help-desc">Top of Daily Log shows avg interval per day · last 6 days + TODAY live column · 日志顶部显示过去6天历史柱 + 今日实时柱</span></div>
-        <div class="help-row"><span class="help-key">TODAY</span><span class="help-desc">Rightmost hollow-border column · refreshes every time log is opened · 最右侧空心边框柱，每次打开日志实时刷新</span></div>
-        <div class="help-row"><span class="help-key">First Launch</span><span class="help-desc">Chart pre-fills 6 zero-days on first use so the layout is always complete · 首次使用自动补满6天零数据，图表始终完整</span></div>
-        <div class="help-row"><span class="help-key" style="color:var(--history)">≤5m</span><span class="help-desc">Green · efficient service · 绿色：出餐效率高</span></div>
-        <div class="help-row"><span class="help-key" style="color:#FFD60A">6–10m</span><span class="help-desc">Yellow · normal pace · 黄色：正常节奏</span></div>
-        <div class="help-row"><span class="help-key" style="color:var(--danger)">11–20m</span><span class="help-desc">Red · slow · 红色：出餐较慢</span></div>
-        <div class="help-row"><span class="help-key" style="color:#333">—</span><span class="help-desc">Flat bar: no data that day · 扁平柱：当天无数据</span></div>
-        <div class="help-row"><span class="help-key">Auto Reset</span><span class="help-desc">Today's log clears automatically on first launch of each new day · history chips also cleared · 每天首次启动自动清空今日记录和历史磁贴</span></div>
-        <div class="help-row"><span class="help-key">Gap Fill</span><span class="help-desc">Missed days auto-filled with flat zero bars · 中断天数自动补零保持时间线连续</span></div>
+        <div class="help-section-title">📊 EFFICIENCY REPORT 出餐效率报表 <span style="color:var(--accent);font-size:10px;margin-left:6px;">v4.9.5</span></div>
+        <div class="help-row"><span class="help-key">iPhone</span><span class="help-desc">7-day chart · last 6 days + TODAY · iPhone显示7天图表</span></div>
+        <div class="help-row"><span class="help-key">iPad Landscape</span><span class="help-desc">28-day chart · full 4-week view fills the screen · iPad横屏显示28天4周图表</span></div>
+        <div class="help-row"><span class="help-key">✦ Best Day</span><span class="help-desc">Gold star marks the day with shortest avg interval · 金色✦标记效率最高的一天</span></div>
+        <div class="help-row"><span class="help-key">TODAY</span><span class="help-desc">Rightmost striped column · refreshes every time log is opened · 最右侧斜纹柱，每次打开实时刷新</span></div>
+        <div class="help-row"><span class="help-key">First Launch</span><span class="help-desc">Chart pre-fills zero-days on first use so layout is always complete · 首次使用自动补满历史天数</span></div>
+        <div class="help-row"><span class="help-key" style="color:var(--history)">≤5m</span><span class="help-desc">Green · efficient · 绿色：高效</span></div>
+        <div class="help-row"><span class="help-key" style="color:#FFD60A">6–10m</span><span class="help-desc">Yellow · normal · 黄色：正常</span></div>
+        <div class="help-row"><span class="help-key" style="color:var(--danger)">11–20m</span><span class="help-desc">Red · slow · 红色：偏慢</span></div>
+        <div class="help-row"><span class="help-key">Auto Reset</span><span class="help-desc">Today's log and history chips clear on first launch of each new day · 每天首次启动自动清空</span></div>
       </div>
 
       <div class="help-section">
@@ -1997,34 +1998,60 @@
     if (!container) return;
     container.innerHTML = '';
 
+    // v4.9.5: 检测 iPad 横屏 → 28天；其余 → 7天
+    const isIPadLandscape = window.innerWidth >= 768 && window.innerWidth > window.innerHeight;
+    const maxHistory = isIPadLandscape ? 27 : 6;  // 历史柱数（不含TODAY）
+
     // 计算今日实时均值
     const todayIntervals = callLog.filter(r => r.interval > 0 && r.interval <= 20).map(r => r.interval);
     const todayAvg = todayIntervals.length >= 1
       ? parseFloat((todayIntervals.reduce((a,b) => a+b, 0) / todayIntervals.length).toFixed(1))
       : 0;
 
-    // 合并历史7天 + 今日，共最多8列（用于计算 maxAvg），但只渲染7天历史+今日=8列
-    // 取最近6条历史（为今日腾出第7位）
-    const displayDays = history7Days.slice(-6);
+    const displayDays = history7Days.slice(-maxHistory);
+    const CHART_CEIL = 15;  // v4.9.6: 柱高上限15分钟，超过封顶，比例直观
     const allAvgs = [...displayDays.map(d => d.avg), todayAvg];
-    const maxAvg  = Math.max(...allAvgs, 1);
+    // 历史柱高度用固定上限，不再用动态maxAvg
+    const toBarH = avg => avg === 0 ? 2 : Math.max(4, Math.round((Math.min(avg, CHART_CEIL) / CHART_CEIL) * 75));
 
-    // 渲染历史柱（最多6条）
+    // v4.9.5: 找最佳日（非零 avg 最小值）
+    const nonZeroAvgs = displayDays.filter(d => d.avg > 0).map(d => d.avg);
+    const bestAvg = nonZeroAvgs.length > 0 ? Math.min(...nonZeroAvgs) : null;
+
+    // v4.9.5: 动态间距 — iPad横屏铺满，iPhone固定
+    if (isIPadLandscape) {
+      container.style.gap = '';  // 清除固定gap，用justify-content撑满
+      container.style.justifyContent = 'space-between';
+    } else {
+      container.style.gap = '6px';
+      container.style.justifyContent = 'flex-start';
+    }
+
+    // 渲染历史柱
     displayDays.forEach(day => {
-      const isZero = day.avg === 0;
-      const barH   = isZero ? 2 : Math.max(4, Math.round((day.avg / maxAvg) * 56));
-      const col    = document.createElement('div');
+      const isZero  = day.avg === 0;
+      const isBest  = bestAvg !== null && day.avg === bestAvg;
+      const barH    = toBarH(day.avg);
+      const col     = document.createElement('div');
       col.className = 'chart-col';
+
+      const valStyle  = `color:${isZero ? '#333' : barColor(day.avg)}`;
+      const dateStyle = isBest
+        ? `color:var(--accent);font-weight:700;`
+        : '';
+      const bestMark  = isBest ? `<div style="font-size:9px;color:var(--accent);line-height:1;">✦</div>` : '';
+
       col.innerHTML =
-        `<div class="chart-val" style="color:${isZero ? '#333' : barColor(day.avg)}">${isZero ? '—' : day.avg + 'm'}</div>` +
+        `${bestMark}` +
+        `<div class="chart-val" style="${valStyle}">${isZero ? '—' : day.avg + 'm'}</div>` +
         `<div class="chart-bar" style="height:${barH}px;background:${barColor(day.avg)}"></div>` +
-        `<div class="chart-date">${day.date}</div>`;
+        `<div class="chart-date" style="${dateStyle}">${day.date}</div>`;
       container.appendChild(col);
     });
 
-    // 渲染今日实时柱（始终存在，半透明边框风格区别历史柱）
+    // TODAY 柱
     const todayIsZero = todayAvg === 0;
-    const todayBarH   = todayIsZero ? 2 : Math.max(4, Math.round((todayAvg / maxAvg) * 56));
+    const todayBarH   = toBarH(todayAvg);
     const todayColor  = todayIsZero ? '#333' : barColor(todayAvg);
     const todayCol    = document.createElement('div');
     todayCol.className = 'chart-col';
@@ -2470,10 +2497,10 @@
     try { history7Days = JSON.parse(localStorage.getItem('history7Days') || '[]'); } catch(e) { history7Days = []; }
     try { callLog      = JSON.parse(localStorage.getItem('callLog')      || '[]'); } catch(e) { callLog = []; }
 
-    // v4.9.0: 首次使用时往前补6天零数据，确保图表始终显示完整7格
+    // v4.9.5: 首次使用往前补27天零数据，确保图表始终显示完整28格
     if (history7Days.length === 0) {
       const now = new Date();
-      for (let i = 6; i >= 1; i--) {
+      for (let i = 27; i >= 1; i--) {
         const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate() - i));
         history7Days.push({ date: `${d.getUTCMonth()+1}/${d.getUTCDate()}`, avg: 0 });
       }
@@ -2512,7 +2539,7 @@
       history7Days.push({ date: lastDate, avg });
 
       // 4. 滚动，最多保留7条
-      while (history7Days.length > 7) history7Days.shift();
+      while (history7Days.length > 28) history7Days.shift();
       localStorage.setItem('history7Days', JSON.stringify(history7Days));
 
       // 5. 结算完成后，清空今日记录迎接新一天
