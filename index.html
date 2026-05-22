@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Order Terminal V4.9.6</title>
+  <title>Order Terminal V4.9.8</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
     /* ─── Design Tokens ─────────────────────────────── */
@@ -438,6 +438,92 @@
       cursor: pointer;
     }
 
+    .log-data-btn {
+      background: none;
+      border: 1px solid #333;
+      color: #888;
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    /* ─── Data Backup Sheet v4.9.8 ──────────────────── */
+    .data-sheet-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 400;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .data-sheet-overlay.show {
+      display: flex;
+    }
+
+    .data-sheet {
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-bottom: none;
+      border-radius: 20px 20px 0 0;
+      width: 100%;
+      max-width: 480px;
+      padding: 24px 20px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .data-sheet-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      color: #555;
+      margin-bottom: 4px;
+    }
+
+    .data-sheet-btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid #333;
+      background: #000;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .data-sheet-btn:active { opacity: 0.7; }
+
+    .data-sheet-btn .btn-sub {
+      font-size: 11px;
+      color: #555;
+      font-weight: 400;
+      margin-left: auto;
+    }
+
+    .data-sheet-cancel {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid #222;
+      background: none;
+      color: #666;
+      font-size: 14px;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+
     .log-content {
       flex: 1;
       overflow-y: auto;
@@ -470,22 +556,23 @@
     }
 
     .log-footer {
-      padding: 20px;
+      padding: 8px 20px;
       background: #0a0a0a;
       border-top: 1px solid #222;
-      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
       flex-shrink: 0;
     }
 
     .avg-label {
-      font-size: 11px;
+      font-size: 10px;
       color: #555;
-      margin-bottom: 5px;
     }
 
     .avg-value {
-      color: var(--history);
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 900;
       font-family: 'JetBrains Mono', monospace;
     }
@@ -1217,7 +1304,7 @@
 
   <!-- 顶部标题栏 -->
   <header class="header">
-    <h1>ORDER TERMINAL V4.9.6</h1>
+    <h1>ORDER TERMINAL V4.9.8</h1>
     <div style="display:flex; gap:8px;">
       <button id="kanbanBtn">⌨️ AUTO</button>
       <button id="settingsBtn">SETTINGS</button>
@@ -1287,8 +1374,28 @@
   <div class="log-overlay" id="logOverlay">
     <div class="log-header">
       <h2>DAILY LOG</h2>
-      <button class="log-close-btn" id="logCloseBtn">CLOSE</button>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="log-data-btn" id="dataBtn">↕ DATA</button>
+        <button class="log-close-btn" id="logCloseBtn">CLOSE</button>
+      </div>
     </div>
+
+  <!-- v4.9.8: 数据备份/恢复 sheet -->
+  <div class="data-sheet-overlay" id="dataSheetOverlay">
+    <div class="data-sheet">
+      <div class="data-sheet-title">DATA BACKUP & RESTORE</div>
+      <button class="data-sheet-btn" id="exportBtn">
+        ⬇ Export Backup
+        <span class="btn-sub">saves JSON file</span>
+      </button>
+      <button class="data-sheet-btn" id="importBtn">
+        ⬆ Import Backup
+        <span class="btn-sub">restores all data & settings</span>
+      </button>
+      <input type="file" id="importFile" accept=".json" style="display:none;">
+      <button class="data-sheet-cancel" id="dataSheetCancel">CANCEL</button>
+    </div>
+  </div>
     <!-- v4.8.2: 7天趋势图 -->
     <div class="chart-panel">
       <div class="chart-title">7-DAY EFFICIENCY TREND  AVG INTERVAL (min)</div>
@@ -1385,7 +1492,7 @@
 
   <div class="help-overlay" id="helpOverlay">
     <div class="help-header">
-      <h2>GUIDE V4.9.6</h2>
+      <h2>GUIDE V4.9.8</h2>
       <button class="log-close-btn" id="helpCloseBtn">CLOSE</button>
     </div>
     <div class="help-content">
@@ -1497,7 +1604,7 @@
       <div class="help-section">
         <div class="help-section-title">📊 DAILY LOG 今日日志</div>
         <div class="help-row"><span class="help-key">Interval Colors</span><span class="help-desc">White 0m / Green 1–5m / Yellow 6–10m / Red 11–20m / Grey 21m+ · 颜色对应间隔长短</span></div>
-        <div class="help-row"><span class="help-key">Average</span><span class="help-desc">Only counts intervals 1–20 min · filters long breaks · 仅统计1–20分钟有效间隔</span></div>
+        <div class="help-row"><span class="help-key">Average</span><span class="help-desc">Bottom bar shows today's avg · color follows same scale as interval colors · 底部今日均值颜色与间隔色阶一致 · only counts 1–20m intervals · 仅统计1–20分钟</span></div>
         <div class="help-row"><span class="help-key">Capacity</span><span class="help-desc">Max 300 records · oldest auto-removed · 最多300条，自动淘汰最旧记录</span></div>
       </div>
 
@@ -1509,6 +1616,9 @@
       <div class="help-section">
         <div class="help-section-title">⚙️ DATA MANAGEMENT 数据管理</div>
         <div class="help-row"><span class="help-key">RESET</span><span class="help-desc">Clears all logs, history &amp; current number · settings preserved · 清空日志和历史，设置不受影响</span></div>
+        <div class="help-row"><span class="help-key">↕ DATA</span><span class="help-desc">Backup &amp; restore button in Daily Log header · 日志界面顶部的数据备份按钮</span></div>
+        <div class="help-row"><span class="help-key">⬇ Export</span><span class="help-desc">Downloads a JSON backup of all history, logs &amp; settings · 导出包含所有数据和设置的 JSON 文件</span></div>
+        <div class="help-row"><span class="help-key">⬆ Import</span><span class="help-desc">Select a backup JSON to fully restore · safe to use after reinstalling · 选择备份文件恢复所有数据，重装图标后使用</span></div>
       </div>
 
     </div>
@@ -2081,8 +2191,10 @@
       if (item.interval <= 20 && item.interval > 0) { total += item.interval; count++; }
     });
 
-    document.getElementById('avgValue').textContent =
-      (count > 0 ? (total / count).toFixed(1) : '0.0') + 'm';
+    const avgNum = count > 0 ? parseFloat((total / count).toFixed(1)) : 0;
+    const avgEl  = document.getElementById('avgValue');
+    avgEl.textContent = avgNum.toFixed(1) + 'm';
+    avgEl.style.color = intervalColor(avgNum);
   }
 
   // ─── 设置面板 ─────────────────────────────────────────
@@ -2241,6 +2353,96 @@
   document.getElementById('saveBtn').addEventListener('click', saveAndClose);
   document.getElementById('testVoiceBtn').addEventListener('click', testVoice);
   document.getElementById('resetBtn').addEventListener('click', resetDayData);
+
+  // ─── v4.9.8: 数据备份 / 恢复 ─────────────────────────
+  const dataSheetOverlay = document.getElementById('dataSheetOverlay');
+
+  document.getElementById('dataBtn').addEventListener('click', () => {
+    dataSheetOverlay.classList.add('show');
+  });
+
+  document.getElementById('dataSheetCancel').addEventListener('click', () => {
+    dataSheetOverlay.classList.remove('show');
+  });
+
+  dataSheetOverlay.addEventListener('click', e => {
+    if (e.target === dataSheetOverlay) dataSheetOverlay.classList.remove('show');
+  });
+
+  // 导出
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+    const payload = {
+      version:       'V4.9.8',
+      exportDate:    dateStr,
+      historyDays:   history7Days,
+      callLog:       callLog,
+      settings: {
+        repeat:         localStorage.getItem('repeat')         || '2',
+        speed:          localStorage.getItem('speed')          || '1',
+        ding:           localStorage.getItem('ding')           || '0.35',
+        voiceName:      localStorage.getItem('voiceName')      || '',
+        announcePrefix: localStorage.getItem('announcePrefix') || '',
+        announceSuffix: localStorage.getItem('announceSuffix') || '',
+        displayFont:    localStorage.getItem('displayFont')    || 'JetBrains Mono',
+        theme:          localStorage.getItem('theme')          || 'amber',
+        recallKey:      localStorage.getItem('recallKey')      || 'Multiply',
+        lastActiveDate: localStorage.getItem('lastActiveDate') || '',
+      }
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `order-backup-${dateStr}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    dataSheetOverlay.classList.remove('show');
+  });
+
+  // 导入
+  document.getElementById('importBtn').addEventListener('click', () => {
+    document.getElementById('importFile').click();
+  });
+
+  document.getElementById('importFile').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        // 恢复历史数据
+        if (Array.isArray(data.historyDays)) {
+          history7Days = data.historyDays.slice(-28);
+          localStorage.setItem('history7Days', JSON.stringify(history7Days));
+        }
+        if (Array.isArray(data.callLog)) {
+          callLog = data.callLog.slice(-300);
+          localStorage.setItem('callLog', JSON.stringify(callLog));
+        }
+        // 恢复设置
+        if (data.settings) {
+          const s = data.settings;
+          const keys = ['repeat','speed','ding','voiceName','announcePrefix',
+                        'announceSuffix','displayFont','theme','recallKey','lastActiveDate'];
+          keys.forEach(k => { if (s[k] !== undefined) localStorage.setItem(k, s[k]); });
+        }
+        dataSheetOverlay.classList.remove('show');
+        // 刷新界面
+        loadSettings();
+        renderLogContent();
+        renderHistory();
+        alert('✅ Backup restored successfully.');
+      } catch(err) {
+        alert('❌ Invalid backup file. Please select a valid order-backup JSON.');
+      }
+      // 清空 input 以便下次还能选同一文件
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  });
 
   // ─── v4.9.2: 主题切换 ────────────────────────────────
   function applyTheme(name) {
