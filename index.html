@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Order Terminal V4.9.8</title>
+  <title>Order Terminal V4.9.9</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
     /* ─── Design Tokens ─────────────────────────────── */
@@ -583,6 +583,20 @@
       padding: 8px 20px 8px;
       border-bottom: 1px solid #1a1a1a;
       background: #050505;
+      position: relative;
+    }
+
+    /* v4.9.9: 展开态 — 绝对定位覆盖日志滚动区 */
+    .chart-panel.expanded {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: var(--chart-top, 0px);
+      bottom: 0;
+      z-index: 10;
+      overflow-y: auto;
+      border-bottom: none;
+      padding-bottom: 16px;
     }
 
     .chart-title {
@@ -591,7 +605,25 @@
       color: #444;
       letter-spacing: 0.12em;
       margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
+
+    .chart-expand-btn {
+      background: none;
+      border: 1px solid #2a2a2a;
+      color: #555;
+      font-size: 10px;
+      font-family: 'Share Tech Mono', monospace;
+      padding: 2px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      letter-spacing: 0.08em;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .chart-expand-btn:active { opacity: 0.6; }
 
     .chart-bars {
       display: flex;
@@ -599,6 +631,21 @@
       justify-content: flex-start;
       height: 90px;
       gap: 6px;
+    }
+
+    /* 展开时多排之间的分隔 */
+    .chart-row-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .chart-row-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      color: #333;
+      margin-bottom: 4px;
+      letter-spacing: 0.08em;
     }
 
     .chart-col {
@@ -1304,7 +1351,7 @@
 
   <!-- 顶部标题栏 -->
   <header class="header">
-    <h1>ORDER TERMINAL V4.9.8</h1>
+    <h1>ORDER TERMINAL V4.9.9</h1>
     <div style="display:flex; gap:8px;">
       <button id="kanbanBtn">⌨️ AUTO</button>
       <button id="settingsBtn">SETTINGS</button>
@@ -1397,9 +1444,12 @@
     </div>
   </div>
     <!-- v4.8.2: 7天趋势图 -->
-    <div class="chart-panel">
-      <div class="chart-title">7-DAY EFFICIENCY TREND  AVG INTERVAL (min)</div>
-      <div class="chart-bars" id="chartBars"></div>
+    <div class="chart-panel" id="chartPanel">
+      <div class="chart-title">
+        <span id="chartTitleText">EFFICIENCY TREND  AVG INTERVAL (min)</span>
+        <button class="chart-expand-btn" id="chartExpandBtn">▼ EXPAND</button>
+      </div>
+      <div id="chartBarsWrap"></div>
     </div>
     <div class="log-content" id="logContent"></div>
     <div class="log-footer">
@@ -1492,7 +1542,7 @@
 
   <div class="help-overlay" id="helpOverlay">
     <div class="help-header">
-      <h2>GUIDE V4.9.8</h2>
+      <h2>GUIDE V4.9.9</h2>
       <button class="log-close-btn" id="helpCloseBtn">CLOSE</button>
     </div>
     <div class="help-content">
@@ -1531,12 +1581,12 @@
       </div>
 
       <div class="help-section">
-        <div class="help-section-title">📊 EFFICIENCY REPORT 出餐效率报表 <span style="color:var(--accent);font-size:10px;margin-left:6px;">v4.9.5</span></div>
-        <div class="help-row"><span class="help-key">iPhone</span><span class="help-desc">7-day chart · last 6 days + TODAY · iPhone显示7天图表</span></div>
-        <div class="help-row"><span class="help-key">iPad Landscape</span><span class="help-desc">28-day chart · full 4-week view fills the screen · iPad横屏显示28天4周图表</span></div>
+        <div class="help-section-title">📊 EFFICIENCY REPORT 出餐效率报表 <span style="color:var(--accent);font-size:10px;margin-left:6px;">v4.9.9</span></div>
+        <div class="help-row"><span class="help-key">iPhone</span><span class="help-desc">Default 7-day view · tap ▼ EXPAND to show all 28 days in 4 rows · 默认7天，展开显示4排共28天</span></div>
+        <div class="help-row"><span class="help-key">iPad Landscape</span><span class="help-desc">Default 14-day centered view · tap ▼ EXPAND to show all 28 days in 2 rows · 默认14天居中，展开显示2排共28天</span></div>
+        <div class="help-row"><span class="help-key">▼ EXPAND</span><span class="help-desc">Chart expands to cover the log list · tap ▲ COLLAPSE to restore · 展开覆盖日志区，再点收起恢复</span></div>
         <div class="help-row"><span class="help-key">✦ Best Day</span><span class="help-desc">Gold star marks the day with shortest avg interval · 金色✦标记效率最高的一天</span></div>
         <div class="help-row"><span class="help-key">TODAY</span><span class="help-desc">Rightmost striped column · refreshes every time log is opened · 最右侧斜纹柱，每次打开实时刷新</span></div>
-        <div class="help-row"><span class="help-key">First Launch</span><span class="help-desc">Chart pre-fills zero-days on first use so layout is always complete · 首次使用自动补满历史天数</span></div>
         <div class="help-row"><span class="help-key" style="color:var(--history)">≤5m</span><span class="help-desc">Green · efficient · 绿色：高效</span></div>
         <div class="help-row"><span class="help-key" style="color:#FFD60A">6–10m</span><span class="help-desc">Yellow · normal · 黄色：正常</span></div>
         <div class="help-row"><span class="help-key" style="color:var(--danger)">11–20m</span><span class="help-desc">Red · slow · 红色：偏慢</span></div>
@@ -2103,54 +2153,20 @@
     return '#888';                              // 21m+ 灰
   }
 
-  function renderChart() {
-    const container = document.getElementById('chartBars');
-    if (!container) return;
+  // ─── v4.9.9: 图表展开状态 ─────────────────────────────
+  let chartExpanded = false;
+
+  function renderBarGroup(days, todayCol, container) {
     container.innerHTML = '';
-
-    // v4.9.5: 检测 iPad 横屏 → 28天；其余 → 7天
-    const isIPadLandscape = window.innerWidth >= 768 && window.innerWidth > window.innerHeight;
-    const maxHistory = isIPadLandscape ? 27 : 6;  // 历史柱数（不含TODAY）
-
-    // 计算今日实时均值
-    const todayIntervals = callLog.filter(r => r.interval > 0 && r.interval <= 20).map(r => r.interval);
-    const todayAvg = todayIntervals.length >= 1
-      ? parseFloat((todayIntervals.reduce((a,b) => a+b, 0) / todayIntervals.length).toFixed(1))
-      : 0;
-
-    const displayDays = history7Days.slice(-maxHistory);
-    const CHART_CEIL = 15;  // v4.9.6: 柱高上限15分钟，超过封顶，比例直观
-    const allAvgs = [...displayDays.map(d => d.avg), todayAvg];
-    // 历史柱高度用固定上限，不再用动态maxAvg
-    const toBarH = avg => avg === 0 ? 2 : Math.max(4, Math.round((Math.min(avg, CHART_CEIL) / CHART_CEIL) * 75));
-
-    // v4.9.5: 找最佳日（非零 avg 最小值）
-    const nonZeroAvgs = displayDays.filter(d => d.avg > 0).map(d => d.avg);
-    const bestAvg = nonZeroAvgs.length > 0 ? Math.min(...nonZeroAvgs) : null;
-
-    // v4.9.5: 动态间距 — iPad横屏铺满，iPhone固定
-    if (isIPadLandscape) {
-      container.style.gap = '';  // 清除固定gap，用justify-content撑满
-      container.style.justifyContent = 'space-between';
-    } else {
-      container.style.gap = '6px';
-      container.style.justifyContent = 'flex-start';
-    }
-
-    // 渲染历史柱
-    displayDays.forEach(day => {
-      const isZero  = day.avg === 0;
-      const isBest  = bestAvg !== null && day.avg === bestAvg;
-      const barH    = toBarH(day.avg);
-      const col     = document.createElement('div');
+    days.forEach(day => {
+      const isZero = day.avg === 0;
+      const isBest = day._isBest || false;
+      const barH   = day._barH;
+      const col    = document.createElement('div');
       col.className = 'chart-col';
-
       const valStyle  = `color:${isZero ? '#333' : barColor(day.avg)}`;
-      const dateStyle = isBest
-        ? `color:var(--accent);font-weight:700;`
-        : '';
+      const dateStyle = isBest ? 'color:var(--accent);font-weight:700;' : '';
       const bestMark  = isBest ? `<div style="font-size:9px;color:var(--accent);line-height:1;">✦</div>` : '';
-
       col.innerHTML =
         `${bestMark}` +
         `<div class="chart-val" style="${valStyle}">${isZero ? '—' : day.avg + 'm'}</div>` +
@@ -2158,19 +2174,124 @@
         `<div class="chart-date" style="${dateStyle}">${day.date}</div>`;
       container.appendChild(col);
     });
-
-    // TODAY 柱
-    const todayIsZero = todayAvg === 0;
-    const todayBarH   = toBarH(todayAvg);
-    const todayColor  = todayIsZero ? '#333' : barColor(todayAvg);
-    const todayCol    = document.createElement('div');
-    todayCol.className = 'chart-col';
-    todayCol.innerHTML =
-      `<div class="chart-val" style="color:${todayIsZero ? '#444' : todayColor}">${todayIsZero ? '—' : todayAvg + 'm'}</div>` +
-      `<div class="chart-bar" style="height:${todayBarH}px;background:repeating-linear-gradient(45deg,${todayColor},${todayColor} 3px,transparent 3px,transparent 7px);border:1px solid ${todayColor};box-sizing:border-box;opacity:${todayIsZero ? 0.3 : 1}"></div>` +
-      `<div class="chart-date" style="color:var(--accent);font-size:8px;">TODAY</div>`;
-    container.appendChild(todayCol);
+    if (todayCol) container.appendChild(todayCol);
   }
+
+  function renderChart() {
+    const wrap = document.getElementById('chartBarsWrap');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+
+    const isIPadLandscape = window.innerWidth >= 768 && window.innerWidth > window.innerHeight;
+    const colsPerRow = isIPadLandscape ? 14 : 7;
+    const maxHistory = isIPadLandscape ? 27 : 6;
+
+    // 今日均值
+    const todayIntervals = callLog.filter(r => r.interval > 0 && r.interval <= 20).map(r => r.interval);
+    const todayAvg = todayIntervals.length >= 1
+      ? parseFloat((todayIntervals.reduce((a,b) => a+b, 0) / todayIntervals.length).toFixed(1))
+      : 0;
+
+    const CHART_CEIL = 15;
+    const toBarH = avg => avg === 0 ? 2 : Math.max(4, Math.round((Math.min(avg, CHART_CEIL) / CHART_CEIL) * 75));
+
+    // 最佳日计算（全28条历史里）
+    const allHistory = history7Days.slice(-27);
+    const nonZeroAvgs = allHistory.filter(d => d.avg > 0).map(d => d.avg);
+    const bestAvg = nonZeroAvgs.length > 0 ? Math.min(...nonZeroAvgs) : null;
+
+    // 给每条数据预计算 barH 和 isBest
+    const enriched = allHistory.map(d => ({
+      ...d,
+      _barH:   toBarH(d.avg),
+      _isBest: bestAvg !== null && d.avg === bestAvg
+    }));
+
+    // TODAY 柱 DOM（复用）
+    const makeTodayCol = () => {
+      const todayIsZero = todayAvg === 0;
+      const todayBarH   = toBarH(todayAvg);
+      const todayColor  = todayIsZero ? '#333' : barColor(todayAvg);
+      const col = document.createElement('div');
+      col.className = 'chart-col';
+      col.innerHTML =
+        `<div class="chart-val" style="color:${todayIsZero ? '#444' : todayColor}">${todayIsZero ? '—' : todayAvg + 'm'}</div>` +
+        `<div class="chart-bar" style="height:${todayBarH}px;background:repeating-linear-gradient(45deg,${todayColor},${todayColor} 3px,transparent 3px,transparent 7px);border:1px solid ${todayColor};box-sizing:border-box;opacity:${todayIsZero ? 0.3 : 1}"></div>` +
+        `<div class="chart-date" style="color:var(--accent);font-size:8px;">TODAY</div>`;
+      return col;
+    };
+
+    if (!chartExpanded) {
+      // ── 收起态：显示最近 colsPerRow-1 天 + TODAY，居中 ──
+      const titleText = document.getElementById('chartTitleText');
+      if (titleText) titleText.textContent = `${colsPerRow}-DAY TREND  AVG INTERVAL (min)`;
+
+      const recent = enriched.slice(-maxHistory);
+      const barsDiv = document.createElement('div');
+      barsDiv.className = 'chart-bars';
+
+      // iPad 横屏居中：flex justify-content center
+      if (isIPadLandscape) {
+        barsDiv.style.justifyContent = 'center';
+        barsDiv.style.gap = '14px';
+      }
+      renderBarGroup(recent, makeTodayCol(), barsDiv);
+      wrap.appendChild(barsDiv);
+
+    } else {
+      // ── 展开态：分排显示全部28天 ──
+      const titleText = document.getElementById('chartTitleText');
+      if (titleText) titleText.textContent = `28-DAY FULL VIEW  AVG INTERVAL (min)`;
+
+      const rowWrap = document.createElement('div');
+      rowWrap.className = 'chart-row-wrap';
+
+      const rows = isIPadLandscape ? 2 : 4;
+      const totalCols = colsPerRow * rows;
+      // 历史27条 + TODAY = 28；按 colsPerRow 分排
+      const allCols = [...enriched.slice(-(totalCols - 1))];
+
+      for (let r = 0; r < rows; r++) {
+        const rowDiv  = document.createElement('div');
+        const isLast  = r === rows - 1;
+        const slice   = allCols.slice(r * colsPerRow, r * colsPerRow + (isLast ? colsPerRow - 1 : colsPerRow));
+        const barsDiv = document.createElement('div');
+        barsDiv.className = 'chart-bars';
+        barsDiv.style.justifyContent = 'space-between';
+        renderBarGroup(slice, isLast ? makeTodayCol() : null, barsDiv);
+        rowDiv.appendChild(barsDiv);
+        rowWrap.appendChild(rowDiv);
+      }
+      wrap.appendChild(rowWrap);
+    }
+  }
+
+  // 展开/收起按钮
+  document.getElementById('chartExpandBtn').addEventListener('click', () => {
+    chartExpanded = !chartExpanded;
+    const btn   = document.getElementById('chartExpandBtn');
+    const panel = document.getElementById('chartPanel');
+    const logContent = document.getElementById('logContent');
+    const footer     = document.querySelector('.log-footer');
+
+    if (chartExpanded) {
+      // 记录 panel 当前顶部位置供 absolute 定位用
+      const rect = panel.getBoundingClientRect();
+      const overlayRect = document.getElementById('logOverlay').getBoundingClientRect();
+      panel.style.setProperty('--chart-top', (rect.top - overlayRect.top) + 'px');
+      panel.classList.add('expanded');
+      logContent.style.visibility = 'hidden';
+      footer.style.visibility = 'hidden';
+      btn.textContent = '▲ COLLAPSE';
+    } else {
+      panel.classList.remove('expanded');
+      panel.style.removeProperty('--chart-top');
+      logContent.style.visibility = '';
+      footer.style.visibility = '';
+      btn.textContent = '▼ EXPAND';
+    }
+    renderChart();
+  });
 
   function renderLogContent() {
     renderChart();
@@ -2374,7 +2495,7 @@
     const today = new Date();
     const dateStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
     const payload = {
-      version:       'V4.9.8',
+      version:       'V4.9.9',
       exportDate:    dateStr,
       historyDays:   history7Days,
       callLog:       callLog,
