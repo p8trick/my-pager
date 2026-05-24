@@ -1,0 +1,11 @@
+{
+  "name": "Order Terminal",
+  "short_name": "Order",
+  "start_url": "/order_v5_0_0.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#FF9F0A",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }
+  ]
+}
