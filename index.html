@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Order Terminal V4.9.9</title>
+  <title>Order Terminal V4.9.10</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
     /* ─── Design Tokens ─────────────────────────────── */
@@ -1351,7 +1351,7 @@
 
   <!-- 顶部标题栏 -->
   <header class="header">
-    <h1>ORDER TERMINAL V4.9.9</h1>
+    <h1>ORDER TERMINAL V4.9.10</h1>
     <div style="display:flex; gap:8px;">
       <button id="kanbanBtn">⌨️ AUTO</button>
       <button id="settingsBtn">SETTINGS</button>
@@ -1542,7 +1542,7 @@
 
   <div class="help-overlay" id="helpOverlay">
     <div class="help-header">
-      <h2>GUIDE V4.9.9</h2>
+      <h2>GUIDE V4.9.10</h2>
       <button class="log-close-btn" id="helpCloseBtn">CLOSE</button>
     </div>
     <div class="help-content">
@@ -2129,6 +2129,12 @@
           updateDisplay();
         }
       };
+      utter.onerror = () => {
+        // 语音引擎异常时释放锁，防止永久卡死
+        isAnnouncing = false;
+        document.getElementById('mainDisplay').classList.remove('playing');
+        targetBtn.classList.remove('playing');
+      };
       window.speechSynthesis.speak(utter);
     }
     performCycle();
@@ -2193,7 +2199,10 @@
       : 0;
 
     const CHART_CEIL = 15;
-    const toBarH = avg => avg === 0 ? 2 : Math.max(4, Math.round((Math.min(avg, CHART_CEIL) / CHART_CEIL) * 75));
+    const barMax = chartExpanded
+      ? (isIPadLandscape ? 150 : 120)
+      : 75;
+    const toBarH = avg => avg === 0 ? 2 : Math.max(4, Math.round((Math.min(avg, CHART_CEIL) / CHART_CEIL) * barMax));
 
     // 最佳日计算（全28条历史里）
     const allHistory = history7Days.slice(-27);
@@ -2229,6 +2238,7 @@
       const recent = enriched.slice(-maxHistory);
       const barsDiv = document.createElement('div');
       barsDiv.className = 'chart-bars';
+      barsDiv.style.height = barMax + 'px';
 
       // iPad 横屏居中：flex justify-content center
       if (isIPadLandscape) {
@@ -2248,7 +2258,6 @@
 
       const rows = isIPadLandscape ? 2 : 4;
       const totalCols = colsPerRow * rows;
-      // 历史27条 + TODAY = 28；按 colsPerRow 分排
       const allCols = [...enriched.slice(-(totalCols - 1))];
 
       for (let r = 0; r < rows; r++) {
@@ -2257,6 +2266,7 @@
         const slice   = allCols.slice(r * colsPerRow, r * colsPerRow + (isLast ? colsPerRow - 1 : colsPerRow));
         const barsDiv = document.createElement('div');
         barsDiv.className = 'chart-bars';
+        barsDiv.style.height = barMax + 'px';
         barsDiv.style.justifyContent = 'space-between';
         renderBarGroup(slice, isLast ? makeTodayCol() : null, barsDiv);
         rowDiv.appendChild(barsDiv);
@@ -2495,7 +2505,7 @@
     const today = new Date();
     const dateStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
     const payload = {
-      version:       'V4.9.9',
+      version:       'V4.9.10',
       exportDate:    dateStr,
       historyDays:   history7Days,
       callLog:       callLog,
