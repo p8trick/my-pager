@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Order Terminal V5.0.0</title>
+  <title>Order Terminal V5.0.1</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -438,16 +438,18 @@
       padding: 8px 15px;
       border-radius: 10px;
       cursor: pointer;
+      font-size: 14px;
+      font-family: 'Outfit', sans-serif;
     }
 
     .log-data-btn {
       background: none;
       border: 1px solid #333;
       color: #888;
-      padding: 8px 12px;
+      padding: 8px 15px;
       border-radius: 10px;
       cursor: pointer;
-      font-size: 13px;
+      font-size: 14px;
       font-family: 'Outfit', sans-serif;
     }
 
@@ -1456,7 +1458,7 @@
 
   <!-- 顶部标题栏 -->
   <header class="header">
-    <h1>ORDER TERMINAL V5.0.0</h1>
+    <h1>ORDER TERMINAL V5.0.1</h1>
     <div style="display:flex; gap:8px;">
       <button id="kanbanBtn">⌨️ AUTO</button>
       <button id="settingsBtn">SETTINGS</button>
@@ -1527,7 +1529,7 @@
     <div class="log-header">
       <h2>DAILY LOG</h2>
       <div style="display:flex;gap:8px;align-items:center;">
-        <button class="log-data-btn" id="dataBtn">↕ DATA</button>
+        <button class="log-data-btn" id="dataBtn">DATA</button>
         <button class="log-close-btn" id="logCloseBtn">CLOSE</button>
       </div>
     </div>
@@ -1663,7 +1665,7 @@
 
   <div class="help-overlay" id="helpOverlay">
     <div class="help-header">
-      <h2>GUIDE V5.0.0</h2>
+      <h2>GUIDE V5.0.1</h2>
       <button class="log-close-btn" id="helpCloseBtn">CLOSE</button>
     </div>
     <div class="help-content">
@@ -1763,6 +1765,7 @@
         <div class="help-row"><span class="help-key">Prefix 前缀</span><span class="help-desc">Text before number · e.g. "Please collect order number" / "请取餐，号码"</span></div>
         <div class="help-row"><span class="help-key">Suffix 后缀</span><span class="help-desc">Text after number · e.g. "thank you" / "号，谢谢" · leave blank to end after number</span></div>
         <div class="help-row"><span class="help-key">Auto Language</span><span class="help-desc">Number reading follows voice engine language · ZH: digit-by-digit (六一八) · EN: grouped (six eighteen) · 数字读法自动跟随语音语言</span></div>
+        <div class="help-row"><span class="help-key">⚠️ Language Match</span><span class="help-desc">Prefix/suffix must match the selected voice language · Chinese text requires a Chinese voice or it will be skipped · 前后缀语言须与所选语音一致，中文文字需选中文语音，否则被引擎跳过</span></div>
         <div class="help-row"><span class="help-key">Default</span><span class="help-desc">Both empty → "Order number six eighteen" · 前后缀均空时保持英文格式</span></div>
       </div>
 
@@ -2387,7 +2390,7 @@
     // 最佳日计算（全28条历史里）
     const allHistory = history7Days.slice(-27);
     const nonZeroAvgs = allHistory.filter(d => d.avg > 0).map(d => d.avg);
-    const bestAvg = nonZeroAvgs.length > 0 ? Math.min(...nonZeroAvgs) : null;
+    const bestAvg = nonZeroAvgs.length >= 3 ? Math.min(...nonZeroAvgs) : null;  // v5.0.1: 至少3天有效数据才评选
 
     // 给每条数据预计算 barH 和 isBest
     const enriched = allHistory.map(d => ({
@@ -2690,7 +2693,7 @@
     const today = new Date();
     const dateStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
     const payload = {
-      version:       'V5.0.0',
+      version:       'V5.0.1',
       exportDate:    dateStr,
       historyDays:   history7Days,
       callLog:       callLog,
@@ -3059,7 +3062,41 @@
 
   // 页面重新可见时恢复 Wake Lock
   document.addEventListener('visibilitychange', () => {
-    if (wakeLock !== null && document.visibilityState === 'visible') requestWakeLock();
+    if (document.visibilityState !== 'visible') return;
+    // 恢复 Wake Lock
+    if (wakeLock !== null) requestWakeLock();
+    // v5.0.1: 跨天检测 — 午夜后从后台切回前台时自动结算
+    const toDateStr = d => `${d.getMonth()+1}/${d.getDate()}`;
+    const todayStr  = toDateStr(new Date());
+    const lastDate  = localStorage.getItem('lastActiveDate');
+    if (lastDate && lastDate !== todayStr) {
+      // 重新执行跨天逻辑（复用 checkNewDay 的核心部分）
+      try { history7Days = JSON.parse(localStorage.getItem('history7Days') || '[]'); } catch(e) { history7Days = []; }
+      try { callLog      = JSON.parse(localStorage.getItem('callLog')      || '[]'); } catch(e) { callLog = []; }
+      const intervals = callLog.filter(r => r.interval > 0 && r.interval <= 20).map(r => r.interval);
+      const avg = intervals.length >= 1
+        ? parseFloat((intervals.reduce((a,b) => a+b, 0) / intervals.length).toFixed(1)) : 0;
+      const toUTC = s => {
+        const [m, d] = s.split('/').map(Number);
+        const yr = new Date().getFullYear();
+        const year = (s === lastDate && m > new Date().getMonth() + 1) ? yr - 1 : yr;
+        return Date.UTC(year, m - 1, d);
+      };
+      const gapDays = Math.round((toUTC(todayStr) - toUTC(lastDate)) / 86400000);
+      for (let i = 1; i < gapDays; i++) {
+        const d = new Date(toUTC(lastDate) + i * 86400000);
+        history7Days.push({ date: `${d.getUTCMonth()+1}/${d.getUTCDate()}`, avg: 0 });
+      }
+      history7Days.push({ date: lastDate, avg });
+      while (history7Days.length > 28) history7Days.shift();
+      localStorage.setItem('history7Days', JSON.stringify(history7Days));
+      callLog = []; orderHistory = [];
+      localStorage.removeItem('callLog');
+      localStorage.setItem('lastActiveDate', todayStr);
+      renderHistory();
+      // 若日志面板开着则刷新图表
+      if (document.getElementById('logOverlay').classList.contains('show')) renderLogContent();
+    }
   });
 
   // ─── 初始化 ───────────────────────────────────────────
