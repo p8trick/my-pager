@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Order Terminal V4.9.10</title>
+  <title>Order Terminal V5.0.0</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -999,6 +999,109 @@
       cursor: pointer;
     }
 
+    /* ─── Sound Picker v5.0.0 ────────────────────────── */
+    .sound-picker-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.82);
+      z-index: 300;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .sound-picker-overlay.show { display: flex; }
+
+    .sound-picker-sheet {
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-bottom: none;
+      border-radius: 20px 20px 0 0;
+      width: 100%;
+      max-width: 480px;
+      max-height: 72dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sound-picker-header {
+      padding: 18px 20px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      color: #555;
+      border-bottom: 1px solid #1e1e1e;
+      flex-shrink: 0;
+    }
+
+    .sound-picker-list {
+      overflow-y: auto;
+      flex: 1;
+      padding: 8px 0;
+    }
+
+    .sound-picker-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 20px;
+      cursor: pointer;
+      border-bottom: 1px solid #1a1a1a;
+      -webkit-tap-highlight-color: transparent;
+      gap: 12px;
+    }
+
+    .sound-picker-item:last-child { border-bottom: none; }
+    .sound-picker-item:active { background: #1a1a1a; }
+    .sound-picker-item.selected { background: #1a1a00; }
+    .sound-picker-item.selected .sound-picker-name { color: var(--accent); }
+
+    .sound-picker-name {
+      font-size: 15px;
+      color: #ccc;
+      font-family: 'Outfit', sans-serif;
+      flex: 1;
+    }
+
+    .sound-picker-desc {
+      font-size: 11px;
+      color: #555;
+      font-family: 'Outfit', sans-serif;
+      flex: 1;
+    }
+
+    .sound-play-btn {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      color: var(--accent);
+      font-size: 14px;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .sound-play-btn:active { opacity: 0.6; transform: scale(0.9); }
+
+    .sound-picker-close {
+      margin: 10px 16px 20px;
+      padding: 14px;
+      background: none;
+      border: 1px solid #333;
+      color: #666;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
     .help-btn {
       margin-top: 10px;
       margin-bottom: 12px;
@@ -1353,7 +1456,7 @@
 
   <!-- 顶部标题栏 -->
   <header class="header">
-    <h1>ORDER TERMINAL V4.9.10</h1>
+    <h1>ORDER TERMINAL V5.0.0</h1>
     <div style="display:flex; gap:8px;">
       <button id="kanbanBtn">⌨️ AUTO</button>
       <button id="settingsBtn">SETTINGS</button>
@@ -1488,6 +1591,13 @@
         <input type="range" id="dingRange" min="0" max="1" step="0.05" value="0.35">
       </div>
       <div class="setting-item">
+        <label>Ding Sound Style</label>
+        <button class="test-btn" id="soundPickerBtn" style="margin-top:0;">🔔 CHOOSE SOUND</button>
+        <div style="margin-top:8px;font-size:11px;color:#444;letter-spacing:0.05em;">
+          Current: <span id="soundPickerLabel" style="color:#666;">Ding</span>
+        </div>
+      </div>
+      <div class="setting-item">
         <label>Repeat: <span id="repeatVal">2</span> Times</label>
         <input type="range" id="repeatRange" min="1" max="5" value="2">
       </div>
@@ -1542,9 +1652,18 @@
     </div>
   </div>
 
+  <!-- v5.0.0: 音效选择浮层 -->
+  <div class="sound-picker-overlay" id="soundPickerOverlay">
+    <div class="sound-picker-sheet">
+      <div class="sound-picker-header">SELECT DING SOUND STYLE</div>
+      <div class="sound-picker-list" id="soundPickerList"></div>
+      <button class="sound-picker-close" id="soundPickerClose">DONE</button>
+    </div>
+  </div>
+
   <div class="help-overlay" id="helpOverlay">
     <div class="help-header">
-      <h2>GUIDE V4.9.10</h2>
+      <h2>GUIDE V5.0.0</h2>
       <button class="log-close-btn" id="helpCloseBtn">CLOSE</button>
     </div>
     <div class="help-content">
@@ -1593,6 +1712,14 @@
         <div class="help-row"><span class="help-key" style="color:#FFD60A">6–10m</span><span class="help-desc">Yellow · normal · 黄色：正常</span></div>
         <div class="help-row"><span class="help-key" style="color:var(--danger)">11–20m</span><span class="help-desc">Red · slow · 红色：偏慢</span></div>
         <div class="help-row"><span class="help-key">Auto Reset</span><span class="help-desc">Today's log and history chips clear on first launch of each new day · 每天首次启动自动清空</span></div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-title">🔔 DING SOUND 叫号音效 <span style="color:var(--accent);font-size:10px;margin-left:6px;">NEW v5.0</span></div>
+        <div class="help-row"><span class="help-key">8 Sounds</span><span class="help-desc">Ding · Double Ding · Chime · Bell · Beep · Marimba · Alert · Fanfare · 8款音效全部纯代码合成</span></div>
+        <div class="help-row"><span class="help-key">▶ Preview</span><span class="help-desc">Tap ▶ to audition each sound before selecting · 点击▶试听后再选择</span></div>
+        <div class="help-row"><span class="help-key">Volume</span><span class="help-desc">Controlled by Ding Volume slider · 音量由叮声音量滑杆统一控制</span></div>
+        <div class="help-row"><span class="help-key">Auto-save</span><span class="help-desc">Saved instantly on selection · included in data backup · 选中即保存，备份文件也包含此设置</span></div>
       </div>
 
       <div class="help-section">
@@ -1692,6 +1819,7 @@
   let feedbackTimers = {};     // v4.7.2: 防抖池，防止长按/连击堆积定时器卡死按钮
   let displayFont = 'JetBrains Mono';  // v4.8.0: 主显示数字字体，默认 JetBrains Mono
   let currentTheme = 'amber';          // v4.9.2: UI主题，默认 Amber
+  let currentSound = 'ding';           // v5.0.0: 叫号音效，默认 Ding
   let history7Days = [];               // v4.8.2: 过去7天效率数据 [{date:'M/D', avg:2.5}, ...]
 
   // ─── 盲打状态标志 ─────────────────────────────────────
@@ -1816,34 +1944,84 @@
   }
 
   // ─── 音效 ─────────────────────────────────────────────
-  function playDing() {
+  // ─── v5.0.0: 多音效引擎 ──────────────────────────────
+  const SOUND_LIST = [
+    { id: 'ding',        name: 'Ding',         desc: 'Classic chime · 经典叮咚（默认）' },
+    { id: 'double_ding', name: 'Double Ding',  desc: 'Two-tone chime · 双叮' },
+    { id: 'chime',       name: 'Chime',        desc: 'Three-note scale · 三音钟声' },
+    { id: 'bell',        name: 'Bell',         desc: 'Service bell · 服务铃' },
+    { id: 'beep',        name: 'Beep',         desc: 'Electronic beep · 电子提示音' },
+    { id: 'marimba',     name: 'Marimba',      desc: 'Warm wooden tone · 木琴' },
+    { id: 'alert',       name: 'Alert',        desc: 'Two-note descend · 下行提示音' },
+    { id: 'fanfare',     name: 'Fanfare',      desc: 'Upbeat brass feel · 仪式感上扬音' },
+  ];
+
+  function playSound(id, vol) {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
-
-    const vol = parseFloat(document.getElementById('dingRange').value);
-    if (vol === 0) return;  // 静音直接跳过
-
+    if (vol === undefined) vol = parseFloat(document.getElementById('dingRange').value);
+    if (vol === 0) return;
     const now = audioCtx.currentTime;
-    const dur = 0.55;
 
-    const osc1 = audioCtx.createOscillator();
-    const g1   = audioCtx.createGain();
-    osc1.type = 'sine';
-    osc1.frequency.value = 830;
-    g1.gain.setValueAtTime(vol, now);
-    g1.gain.exponentialRampToValueAtTime(0.001, now + dur);
-    osc1.connect(g1).connect(audioCtx.destination);
+    const tone = (freq, startTime, duration, gain, type = 'sine') => {
+      const osc = audioCtx.createOscillator();
+      const g   = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      g.gain.setValueAtTime(gain * vol, now + startTime);
+      g.gain.exponentialRampToValueAtTime(0.001, now + startTime + duration);
+      osc.connect(g).connect(audioCtx.destination);
+      osc.start(now + startTime);
+      osc.stop(now + startTime + duration);
+    };
 
-    const osc2 = audioCtx.createOscillator();
-    const g2   = audioCtx.createGain();
-    osc2.type = 'sine';
-    osc2.frequency.value = 1245;
-    g2.gain.setValueAtTime(vol * 0.57, now);
-    g2.gain.exponentialRampToValueAtTime(0.001, now + dur * 0.7);
-    osc2.connect(g2).connect(audioCtx.destination);
+    switch (id) {
+      case 'ding':
+        tone(830,  0,    0.55, 1.0);
+        tone(1245, 0,    0.38, 0.57);
+        break;
+      case 'double_ding':
+        tone(880,  0,    0.35, 1.0);
+        tone(1320, 0,    0.25, 0.5);
+        tone(880,  0.38, 0.35, 0.85);
+        tone(1320, 0.38, 0.25, 0.45);
+        break;
+      case 'chime':
+        tone(523, 0,    0.35, 0.9);   // C5
+        tone(659, 0.22, 0.35, 0.9);   // E5
+        tone(784, 0.44, 0.50, 1.0);   // G5
+        break;
+      case 'bell':
+        tone(440,  0, 0.80, 1.0);
+        tone(880,  0, 0.40, 0.3);
+        tone(1320, 0, 0.20, 0.15);
+        break;
+      case 'beep':
+        tone(1000, 0,    0.12, 1.0, 'square');
+        tone(1000, 0.18, 0.12, 0.7, 'square');
+        break;
+      case 'marimba':
+        tone(523, 0,    0.45, 1.0,  'triangle');
+        tone(1046,0,    0.22, 0.35, 'triangle');
+        tone(659, 0.25, 0.40, 0.75, 'triangle');
+        break;
+      case 'alert':
+        tone(880, 0,    0.25, 1.0);
+        tone(659, 0.28, 0.35, 0.85);
+        break;
+      case 'fanfare':
+        tone(523, 0,    0.18, 0.8);   // C5
+        tone(659, 0.16, 0.18, 0.85);  // E5
+        tone(784, 0.32, 0.18, 0.9);   // G5
+        tone(1047,0.48, 0.40, 1.0);   // C6
+        break;
+      default:
+        tone(830, 0, 0.55, 1.0);
+    }
+  }
 
-    osc1.start(now); osc2.start(now);
-    osc1.stop(now + dur); osc2.stop(now + dur);
+  function playDing() {
+    playSound(currentSound);
   }
 
   // ─── 共用颜色逻辑 ─────────────────────────────────────
@@ -2358,6 +2536,10 @@
     // v4.9.2: 加载主题
     const savedTheme = localStorage.getItem('theme') || 'amber';
     applyTheme(savedTheme);
+    // v5.0.0: 加载音效
+    const savedSound = localStorage.getItem('sound') || 'ding';
+    currentSound = savedSound;
+    updateSoundLabel();
   }
 
   function saveAndClose() {
@@ -2369,6 +2551,7 @@
     localStorage.setItem('announceSuffix',  document.getElementById('announceSuffix').value);
     localStorage.setItem('recallKey',       recallKey);  // v4.7
     localStorage.setItem('displayFont',     displayFont); // v4.8.0
+    localStorage.setItem('sound',           currentSound); // v5.0.0
     toggleSettings();
   }
 
@@ -2507,7 +2690,7 @@
     const today = new Date();
     const dateStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
     const payload = {
-      version:       'V4.9.10',
+      version:       'V5.0.0',
       exportDate:    dateStr,
       historyDays:   history7Days,
       callLog:       callLog,
@@ -2521,6 +2704,7 @@
         displayFont:    localStorage.getItem('displayFont')    || 'JetBrains Mono',
         theme:          localStorage.getItem('theme')          || 'amber',
         recallKey:      localStorage.getItem('recallKey')      || 'Multiply',
+        sound:          localStorage.getItem('sound')          || 'ding',
         lastActiveDate: localStorage.getItem('lastActiveDate') || '',
       }
     };
@@ -2559,7 +2743,8 @@
         if (data.settings) {
           const s = data.settings;
           const keys = ['repeat','speed','ding','voiceName','announcePrefix',
-                        'announceSuffix','displayFont','theme','recallKey','lastActiveDate'];
+                        'announceSuffix','displayFont','theme','recallKey',
+                        'sound','lastActiveDate'];
           keys.forEach(k => { if (s[k] !== undefined) localStorage.setItem(k, s[k]); });
         }
         dataSheetOverlay.classList.remove('show');
@@ -2575,6 +2760,62 @@
       e.target.value = '';
     };
     reader.readAsText(file);
+  });
+
+  // ─── v5.0.0: 音效选择器 UI ───────────────────────────
+  function updateSoundLabel() {
+    const entry = SOUND_LIST.find(s => s.id === currentSound) || SOUND_LIST[0];
+    const label = document.getElementById('soundPickerLabel');
+    if (label) label.textContent = entry.name;
+  }
+
+  function buildSoundPickerList() {
+    const list = document.getElementById('soundPickerList');
+    list.innerHTML = '';
+    SOUND_LIST.forEach(s => {
+      const item = document.createElement('div');
+      item.className = 'sound-picker-item' + (s.id === currentSound ? ' selected' : '');
+
+      const nameEl = document.createElement('div');
+      nameEl.className = 'sound-picker-name';
+      nameEl.textContent = s.name;
+
+      const descEl = document.createElement('div');
+      descEl.className = 'sound-picker-desc';
+      descEl.textContent = s.desc;
+
+      const playBtn = document.createElement('button');
+      playBtn.className = 'sound-play-btn';
+      playBtn.textContent = '▶';
+      playBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        playSound(s.id, parseFloat(document.getElementById('dingRange').value) || 0.35);
+      });
+
+      item.appendChild(nameEl);
+      item.appendChild(descEl);
+      item.appendChild(playBtn);
+
+      item.addEventListener('click', () => {
+        currentSound = s.id;
+        localStorage.setItem('sound', currentSound);
+        updateSoundLabel();
+        list.querySelectorAll('.sound-picker-item').forEach(el => el.classList.remove('selected'));
+        item.classList.add('selected');
+        // 选中时顺便试听
+        playSound(s.id, parseFloat(document.getElementById('dingRange').value) || 0.35);
+      });
+      list.appendChild(item);
+    });
+  }
+
+  document.getElementById('soundPickerBtn').addEventListener('click', () => {
+    buildSoundPickerList();
+    document.getElementById('soundPickerOverlay').classList.add('show');
+  });
+
+  document.getElementById('soundPickerClose').addEventListener('click', () => {
+    document.getElementById('soundPickerOverlay').classList.remove('show');
   });
 
   // ─── v4.9.2: 主题切换 ────────────────────────────────
