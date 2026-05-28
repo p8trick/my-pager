@@ -641,7 +641,11 @@
     .chart-row-wrap {
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 22px;
+    }
+
+    .chart-row-item {
+      overflow: hidden;
     }
 
     .chart-row-label {
@@ -2450,6 +2454,7 @@
 
       for (let r = 0; r < rows; r++) {
         const rowDiv  = document.createElement('div');
+        rowDiv.className = 'chart-row-item';
         const isLast  = r === rows - 1;
         const slice   = allCols.slice(r * colsPerRow, r * colsPerRow + (isLast ? colsPerRow - 1 : colsPerRow));
         const barsDiv = document.createElement('div');
