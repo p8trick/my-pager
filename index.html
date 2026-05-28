@@ -641,7 +641,7 @@
     .chart-row-wrap {
       display: flex;
       flex-direction: column;
-      gap: 22px;
+      gap: 16px;
     }
 
     .chart-row-item {
@@ -2363,12 +2363,11 @@
       col.className = 'chart-col';
       const valStyle  = `color:${isZero ? '#333' : barColor(day.avg)}`;
       const dateStyle = isBest ? 'color:var(--accent);font-weight:700;' : '';
-      const bestMark  = isBest ? `<div style="font-size:9px;color:var(--accent);line-height:1;margin-top:1px;">✦</div>` : '';
+      const bestMark  = isBest ? '✦ ' : '';
       col.innerHTML =
         `<div class="chart-bar" style="height:${barH}px;background:${barColor(day.avg)}"></div>` +
         `<div class="chart-val" style="${valStyle}">${isZero ? '—' : day.avg + 'm'}</div>` +
-        `${bestMark}` +
-        `<div class="chart-date" style="${dateStyle}">${day.date}</div>`;
+        `<div class="chart-date" style="${dateStyle}">${bestMark}${day.date}</div>`;
       container.appendChild(col);
     });
     if (todayCol) container.appendChild(todayCol);
