@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Order Terminal V5.0.1</title>
+  <title>Order Terminal V5.0.2</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -445,7 +445,7 @@
     .log-data-btn {
       background: none;
       border: 1px solid #333;
-      color: #888;
+      color: #666;
       padding: 8px 15px;
       border-radius: 10px;
       cursor: pointer;
@@ -662,14 +662,7 @@
       min-width: 20px;
       flex-shrink: 0;
       height: 100%;
-      gap: 3px;
-    }
-
-    .chart-val {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 9px;
-      line-height: 1;
-      white-space: nowrap;
+      gap: 0;
     }
 
     .chart-bar {
@@ -677,6 +670,16 @@
       border-radius: 3px 3px 0 0;
       min-height: 2px;
       transition: height 0.3s ease;
+      flex-shrink: 0;
+    }
+
+    .chart-val {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      line-height: 1;
+      white-space: nowrap;
+      margin-top: 3px;
+      flex-shrink: 0;
     }
 
     .chart-date {
@@ -685,6 +688,7 @@
       color: #444;
       margin-top: 2px;
       white-space: nowrap;
+      flex-shrink: 0;
     }
 
     /* ─── Settings Overlay ───────────────────────────── */
@@ -1458,7 +1462,7 @@
 
   <!-- 顶部标题栏 -->
   <header class="header">
-    <h1>ORDER TERMINAL V5.0.1</h1>
+    <h1>ORDER TERMINAL V5.0.2</h1>
     <div style="display:flex; gap:8px;">
       <button id="kanbanBtn">⌨️ AUTO</button>
       <button id="settingsBtn">SETTINGS</button>
@@ -1665,7 +1669,7 @@
 
   <div class="help-overlay" id="helpOverlay">
     <div class="help-header">
-      <h2>GUIDE V5.0.1</h2>
+      <h2>GUIDE V5.0.2</h2>
       <button class="log-close-btn" id="helpCloseBtn">CLOSE</button>
     </div>
     <div class="help-content">
@@ -2355,11 +2359,11 @@
       col.className = 'chart-col';
       const valStyle  = `color:${isZero ? '#333' : barColor(day.avg)}`;
       const dateStyle = isBest ? 'color:var(--accent);font-weight:700;' : '';
-      const bestMark  = isBest ? `<div style="font-size:9px;color:var(--accent);line-height:1;">✦</div>` : '';
+      const bestMark  = isBest ? `<div style="font-size:9px;color:var(--accent);line-height:1;margin-top:1px;">✦</div>` : '';
       col.innerHTML =
-        `${bestMark}` +
-        `<div class="chart-val" style="${valStyle}">${isZero ? '—' : day.avg + 'm'}</div>` +
         `<div class="chart-bar" style="height:${barH}px;background:${barColor(day.avg)}"></div>` +
+        `<div class="chart-val" style="${valStyle}">${isZero ? '—' : day.avg + 'm'}</div>` +
+        `${bestMark}` +
         `<div class="chart-date" style="${dateStyle}">${day.date}</div>`;
       container.appendChild(col);
     });
@@ -2381,16 +2385,17 @@
       ? parseFloat((todayIntervals.reduce((a,b) => a+b, 0) / todayIntervals.length).toFixed(1))
       : 0;
 
-    const CHART_CEIL = 15;
     const barMax = chartExpanded
-      ? (isIPadLandscape ? 150 : 120)
+      ? (isIPadLandscape ? 150 : 135)
       : 75;
-    const toBarH = avg => avg === 0 ? 2 : Math.max(4, Math.round((Math.min(avg, CHART_CEIL) / CHART_CEIL) * barMax));
-
-    // 最佳日计算（全28条历史里）
+    // v5.0.2: 动态上限取实际最大值，比例真实；在 allHistory 和 todayAvg 都算出来后计算
     const allHistory = history7Days.slice(-27);
     const nonZeroAvgs = allHistory.filter(d => d.avg > 0).map(d => d.avg);
-    const bestAvg = nonZeroAvgs.length >= 3 ? Math.min(...nonZeroAvgs) : null;  // v5.0.1: 至少3天有效数据才评选
+    const bestAvg = nonZeroAvgs.length >= 3 ? Math.min(...nonZeroAvgs) : null;
+
+    // 动态上限：取所有历史 + 今日的最大值，确保比例真实
+    const dynamicCeil = Math.max(...allHistory.map(d => d.avg), todayAvg, 1);
+    const toBarH = avg => avg === 0 ? 2 : Math.max(4, Math.round((avg / dynamicCeil) * barMax));
 
     // 给每条数据预计算 barH 和 isBest
     const enriched = allHistory.map(d => ({
@@ -2407,8 +2412,8 @@
       const col = document.createElement('div');
       col.className = 'chart-col';
       col.innerHTML =
-        `<div class="chart-val" style="color:${todayIsZero ? '#444' : todayColor}">${todayIsZero ? '—' : todayAvg + 'm'}</div>` +
         `<div class="chart-bar" style="height:${todayBarH}px;background:repeating-linear-gradient(45deg,${todayColor},${todayColor} 3px,transparent 3px,transparent 7px);border:1px solid ${todayColor};box-sizing:border-box;opacity:${todayIsZero ? 0.3 : 1}"></div>` +
+        `<div class="chart-val" style="color:${todayIsZero ? '#444' : todayColor}">${todayIsZero ? '—' : todayAvg + 'm'}</div>` +
         `<div class="chart-date" style="color:var(--accent);font-size:8px;">TODAY</div>`;
       return col;
     };
@@ -2693,7 +2698,7 @@
     const today = new Date();
     const dateStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
     const payload = {
-      version:       'V5.0.1',
+      version:       'V5.0.2',
       exportDate:    dateStr,
       historyDays:   history7Days,
       callLog:       callLog,
