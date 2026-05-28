@@ -2394,7 +2394,7 @@
     const bestAvg = nonZeroAvgs.length >= 3 ? Math.min(...nonZeroAvgs) : null;
 
     // 动态上限：取所有历史 + 今日的最大值，确保比例真实
-    const dynamicCeil = Math.max(...allHistory.map(d => d.avg), todayAvg, 1);
+    const dynamicCeil = Math.min(Math.max(...allHistory.map(d => d.avg), todayAvg, 1), 20);
     const toBarH = avg => avg === 0 ? 2 : Math.max(4, Math.round((avg / dynamicCeil) * barMax));
 
     // 给每条数据预计算 barH 和 isBest
