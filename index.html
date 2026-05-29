@@ -582,9 +582,23 @@
     }
 
     /* ─── 7-Day Efficiency Chart v4.8.2 ─────────────────── */
+    .chart-header {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      color: #444;
+      letter-spacing: 0.08em;
+      padding: 6px 20px 4px;
+      background: #050505;
+      border-bottom: 1px solid #111;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
     .chart-panel {
       flex-shrink: 0;
-      padding: 6px 20px 8px;
+      padding: 8px 20px 8px;
       border-bottom: 1px solid #1a1a1a;
       background: #050505;
       position: relative;
@@ -601,17 +615,6 @@
       overflow-y: auto;
       border-bottom: none;
       padding-bottom: 16px;
-    }
-
-    .chart-title {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 9px;
-      color: #444;
-      letter-spacing: 0.08em;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
     }
 
     .chart-expand-btn {
@@ -1558,12 +1561,13 @@
       <button class="data-sheet-cancel" id="dataSheetCancel">CANCEL</button>
     </div>
   </div>
+    <!-- 图表标题行：独立于chart-panel之外，柱子再高也不会遮挡 -->
+    <div class="chart-header">
+      <span id="chartTitleText">EFFICIENCY TREND  AVG INTERVAL (min)</span>
+      <button class="chart-expand-btn" id="chartExpandBtn">▼ EXPAND</button>
+    </div>
     <!-- v4.8.2: 7天趋势图 -->
     <div class="chart-panel" id="chartPanel">
-      <div class="chart-title">
-        <span id="chartTitleText">EFFICIENCY TREND  AVG INTERVAL (min)</span>
-        <button class="chart-expand-btn" id="chartExpandBtn">▼ EXPAND</button>
-      </div>
       <div id="chartBarsWrap"></div>
     </div>
     <div class="log-content" id="logContent"></div>
@@ -2471,16 +2475,17 @@
   // 展开/收起按钮
   document.getElementById('chartExpandBtn').addEventListener('click', () => {
     chartExpanded = !chartExpanded;
-    const btn   = document.getElementById('chartExpandBtn');
-    const panel = document.getElementById('chartPanel');
+    const btn        = document.getElementById('chartExpandBtn');
+    const panel      = document.getElementById('chartPanel');
+    const header     = panel.previousElementSibling;  // chart-header div
     const logContent = document.getElementById('logContent');
     const footer     = document.querySelector('.log-footer');
 
     if (chartExpanded) {
-      // 记录 panel 当前顶部位置供 absolute 定位用
-      const rect = panel.getBoundingClientRect();
+      // 展开从 chart-header 底部开始
+      const headerRect  = header.getBoundingClientRect();
       const overlayRect = document.getElementById('logOverlay').getBoundingClientRect();
-      panel.style.setProperty('--chart-top', (rect.top - overlayRect.top) + 'px');
+      panel.style.setProperty('--chart-top', (headerRect.bottom - overlayRect.top) + 'px');
       panel.classList.add('expanded');
       logContent.style.visibility = 'hidden';
       footer.style.visibility = 'hidden';
