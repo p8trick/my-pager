@@ -2393,9 +2393,18 @@
       ? parseFloat((todayIntervals.reduce((a,b) => a+b, 0) / todayIntervals.length).toFixed(1))
       : 0;
 
+    // v5.0.3: barMax 从 CSS .chart-bars 定义的高度读取，JS柱高与CSS容器严格对齐
+    const tempDiv = document.createElement('div');
+    tempDiv.className = 'chart-bars';
+    tempDiv.style.visibility = 'hidden';
+    tempDiv.style.position = 'absolute';
+    document.body.appendChild(tempDiv);
+    const cssBarH = parseInt(getComputedStyle(tempDiv).height) || 82;
+    document.body.removeChild(tempDiv);
+    const labelHeight = 26;
     const barMax = chartExpanded
       ? (isIPadLandscape ? 150 : 135)
-      : 82;
+      : Math.max(20, cssBarH - 2);  // -2px 确保圆角不被裁
     // v5.0.2: 动态上限取实际最大值，比例真实；在 allHistory 和 todayAvg 都算出来后计算
     const allHistory = history7Days.slice(-27);
     const nonZeroAvgs = allHistory.filter(d => d.avg > 0).map(d => d.avg);
@@ -2434,7 +2443,7 @@
       const recent = enriched.slice(-maxHistory);
       const barsDiv = document.createElement('div');
       barsDiv.className = 'chart-bars';
-      barsDiv.style.height = barMax + 'px';
+      // 收起态：高度由 CSS .chart-bars 控制，JS 不覆盖
 
       // iPad 横屏居中：flex justify-content center
       if (isIPadLandscape) {
