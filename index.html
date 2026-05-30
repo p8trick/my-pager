@@ -602,6 +602,7 @@
       border-bottom: 1px solid #1a1a1a;
       background: #050505;
       position: relative;
+      overflow: hidden;
     }
 
     /* v4.9.9: 展开态 — 绝对定位覆盖日志滚动区 */
@@ -2392,9 +2393,16 @@
       ? parseFloat((todayIntervals.reduce((a,b) => a+b, 0) / todayIntervals.length).toFixed(1))
       : 0;
 
+    // v5.0.2: 收起态 barMax 从面板实际高度动态计算，确保柱子不溢出且比例真实
+    // 展开态用固定值（absolute定位，高度充足）
+    const bottomOverhead = 26; // val(12) + date(12) + margin(2) px
+    const panelEl = document.getElementById('chartPanel');
+    const collapsedMax = panelEl
+      ? Math.max(30, panelEl.clientHeight - 16 - bottomOverhead)  // 16 = panel padding top+bottom
+      : 60;
     const barMax = chartExpanded
       ? (isIPadLandscape ? 150 : 135)
-      : 75;
+      : collapsedMax;
     // v5.0.2: 动态上限取实际最大值，比例真实；在 allHistory 和 todayAvg 都算出来后计算
     const allHistory = history7Days.slice(-27);
     const nonZeroAvgs = allHistory.filter(d => d.avg > 0).map(d => d.avg);
