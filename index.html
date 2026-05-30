@@ -598,7 +598,7 @@
 
     .chart-panel {
       flex-shrink: 0;
-      padding: 8px 20px 8px;
+      padding: 4px 20px 8px;
       border-bottom: 1px solid #1a1a1a;
       background: #050505;
       position: relative;
@@ -637,7 +637,7 @@
       display: flex;
       align-items: flex-end;
       justify-content: flex-start;
-      height: 75px;
+      height: 72px;
       gap: 6px;
     }
 
@@ -2395,7 +2395,7 @@
 
     const barMax = chartExpanded
       ? (isIPadLandscape ? 150 : 135)
-      : 75;
+      : 72;
     // v5.0.2: 动态上限取实际最大值，比例真实；在 allHistory 和 todayAvg 都算出来后计算
     const allHistory = history7Days.slice(-27);
     const nonZeroAvgs = allHistory.filter(d => d.avg > 0).map(d => d.avg);
