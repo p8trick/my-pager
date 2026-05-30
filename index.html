@@ -637,7 +637,7 @@
       display: flex;
       align-items: flex-end;
       justify-content: flex-start;
-      height: 82px;
+      height: 86px;
       gap: 6px;
     }
 
@@ -2404,7 +2404,7 @@
     const labelHeight = 26;
     const barMax = chartExpanded
       ? (isIPadLandscape ? 150 : 135)
-      : Math.max(20, cssBarH - 2);  // -2px 确保圆角不被裁
+      : Math.max(20, cssBarH);
     // v5.0.2: 动态上限取实际最大值，比例真实；在 allHistory 和 todayAvg 都算出来后计算
     const allHistory = history7Days.slice(-27);
     const nonZeroAvgs = allHistory.filter(d => d.avg > 0).map(d => d.avg);
@@ -2412,7 +2412,7 @@
 
     // 动态上限：取所有历史 + 今日的最大值，确保比例真实
     const dynamicCeil = Math.min(Math.max(...allHistory.map(d => d.avg), todayAvg, 1), 20);
-    const toBarH = avg => avg === 0 ? 2 : Math.max(4, Math.round((avg / dynamicCeil) * barMax));
+    const toBarH = avg => avg === 0 ? 2 : Math.max(4, Math.round((avg / dynamicCeil) * barMax * 0.92));
 
     // 给每条数据预计算 barH 和 isBest
     const enriched = allHistory.map(d => ({
