@@ -602,7 +602,6 @@
       border-bottom: 1px solid #1a1a1a;
       background: #050505;
       position: relative;
-      overflow: hidden;
     }
 
     /* v4.9.9: 展开态 — 绝对定位覆盖日志滚动区 */
@@ -2412,7 +2411,7 @@
 
     // 动态上限：取所有历史 + 今日的最大值，确保比例真实
     const dynamicCeil = Math.min(Math.max(...allHistory.map(d => d.avg), todayAvg, 1), 20);
-    const toBarH = avg => avg === 0 ? 2 : Math.max(4, Math.round((avg / dynamicCeil) * barMax * 0.92));
+    const toBarH = avg => avg === 0 ? 2 : Math.max(4, Math.round((avg / dynamicCeil) * barMax * 0.90));
 
     // 给每条数据预计算 barH 和 isBest
     const enriched = allHistory.map(d => ({
