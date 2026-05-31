@@ -636,7 +636,7 @@
       display: flex;
       align-items: flex-end;
       justify-content: flex-start;
-      height: 95px;
+      height: 86px;
       gap: 6px;
     }
 
@@ -648,7 +648,7 @@
     }
 
     .chart-row-item {
-      overflow: hidden;
+      overflow: visible;
     }
 
     .chart-row-label {
@@ -2398,7 +2398,7 @@
     tempDiv.style.visibility = 'hidden';
     tempDiv.style.position = 'absolute';
     document.body.appendChild(tempDiv);
-    const cssBarH = parseInt(getComputedStyle(tempDiv).height) || 82;
+    const cssBarH = parseInt(getComputedStyle(tempDiv).height) || 95;
     document.body.removeChild(tempDiv);
     const labelHeight = 26;
     const barMax = chartExpanded
@@ -2411,7 +2411,8 @@
 
     // 动态上限：取所有历史 + 今日的最大值，确保比例真实
     const dynamicCeil = Math.min(Math.max(...allHistory.map(d => d.avg), todayAvg, 1), 20);
-    const toBarH = avg => avg === 0 ? 2 : Math.max(4, Math.round((avg / dynamicCeil) * barMax * 0.80));
+    const barScale = chartExpanded ? 0.92 : 0.80;  // 展开/收起各自的乘数，可独立调整
+    const toBarH = avg => avg === 0 ? 2 : Math.max(4, Math.round((avg / dynamicCeil) * barMax * barScale));
 
     // 给每条数据预计算 barH 和 isBest
     const enriched = allHistory.map(d => ({
@@ -2439,7 +2440,7 @@
       const titleText = document.getElementById('chartTitleText');
       if (titleText) titleText.textContent = `${colsPerRow}-DAY TREND  AVG INTERVAL (min)`;
 
-      const recent = enriched.slice(-maxHistory);
+      const recent = enriched.slice(-(colsPerRow - 1));  // 精确取 colsPerRow-1 条，+TODAY = colsPerRow 列
       const barsDiv = document.createElement('div');
       barsDiv.className = 'chart-bars';
       // 收起态：高度由 CSS .chart-bars 控制，JS 不覆盖
