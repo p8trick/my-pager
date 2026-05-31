@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Order Terminal V5.0.3</title>
+  <title>Order Terminal V5.0.4</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=JetBrains+Mono:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -1469,7 +1469,7 @@
 
   <!-- 顶部标题栏 -->
   <header class="header">
-    <h1>ORDER TERMINAL V5.0.3</h1>
+    <h1>ORDER TERMINAL V5.0.4</h1>
     <div style="display:flex; gap:8px;">
       <button id="kanbanBtn">⌨️ AUTO</button>
       <button id="settingsBtn">SETTINGS</button>
@@ -1677,7 +1677,7 @@
 
   <div class="help-overlay" id="helpOverlay">
     <div class="help-header">
-      <h2>GUIDE V5.0.3</h2>
+      <h2>GUIDE V5.0.4</h2>
       <button class="log-close-btn" id="helpCloseBtn">CLOSE</button>
     </div>
     <div class="help-content">
@@ -2411,7 +2411,7 @@
 
     // 动态上限：取所有历史 + 今日的最大值，确保比例真实
     const dynamicCeil = Math.min(Math.max(...allHistory.map(d => d.avg), todayAvg, 1), 20);
-    const barScale = chartExpanded ? 0.92 : 0.80;  // 展开/收起各自的乘数，可独立调整
+    const barScale = chartExpanded ? 0.92 : 0.80;  // 展开0.92 / 收起0.80
     const toBarH = avg => avg === 0 ? 2 : Math.max(4, Math.round((avg / dynamicCeil) * barMax * barScale));
 
     // 给每条数据预计算 barH 和 isBest
@@ -2717,7 +2717,7 @@
     const today = new Date();
     const dateStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
     const payload = {
-      version:       'V5.0.3',
+      version:       'V5.0.4',
       exportDate:    dateStr,
       historyDays:   history7Days,
       callLog:       callLog,
