@@ -2057,19 +2057,23 @@
 
   function updateTimeDisplay() {
     if (!lastCallTimestamp) return;
-    const diffMin = Math.floor((Date.now() - lastCallTimestamp) / 60000);
+    const diffSec = Math.floor((Date.now() - lastCallTimestamp) / 1000);
+    const diffMin = Math.floor(diffSec / 60);
     const el = document.getElementById('timeDisplay');
     if (diffMin >= 31) {
-      // 第31分钟起显示固定时间，灰色
       el.textContent = lastCallTimeString;
       el.style.color = '#444';
+    } else if (diffSec < 60) {
+      // 1分钟内显示秒数，白色（同0分钟颜色）
+      el.textContent = diffSec + 's';
+      el.style.color = '#ffffff';
     } else {
       el.textContent = diffMin + 'm';
       el.style.color = intervalColor(diffMin);
     }
   }
 
-  setInterval(updateTimeDisplay, 60000);
+  setInterval(updateTimeDisplay, 1000);  // 每秒更新
 
   // ─── 键盘输入 ─────────────────────────────────────────
   // fromPhysical：是否来自物理键盘（触发盲打逻辑）
@@ -2260,8 +2264,9 @@
     document.getElementById('mainDisplay').classList.add('playing');
 
     // 记录本次呼叫
-    const now  = Date.now();
-    const gap  = lastCallTimestamp ? Math.floor((now - lastCallTimestamp) / 60000) : 0;
+    const now     = Date.now();
+    const gapSec  = lastCallTimestamp ? Math.floor((now - lastCallTimestamp) / 1000) : 0;
+    const gapMin  = Math.floor(gapSec / 60);  // 统计用分钟，不满1分钟=0
     const d    = new Date();
     const tStr = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
 
@@ -2271,9 +2276,9 @@
     document.getElementById('lastNumLabel').textContent = '#' + numToSay;
 
     if (!fromHistoryValue) {
-      callLog.push({ number: numToSay, timeStr: tStr, interval: gap, timestamp: Date.now() });
+      callLog.push({ number: numToSay, timeStr: tStr, interval: gapMin, gapSec: gapSec, timestamp: Date.now() });
       if (callLog.length > 300) callLog.shift();
-      localStorage.setItem('callLog', JSON.stringify(callLog));  // v4.8.5: 持久化
+      localStorage.setItem('callLog', JSON.stringify(callLog));
     }
     updateTimeDisplay();
 
@@ -2517,13 +2522,16 @@
     let total = 0, count = 0;
 
     callLog.slice().reverse().forEach(item => {
-      const gapColor = intervalColor(item.interval);
+      const gapColor   = intervalColor(item.interval);
+      const gapDisplay = (item.gapSec !== undefined && item.gapSec < 60)
+        ? item.gapSec + 's'
+        : item.interval + 'm';
       const row = document.createElement('div');
       row.className = 'log-item';
       row.innerHTML = `
         <div class="order-part">#${item.number}</div>
         <div class="time-part">${item.timeStr}</div>
-        <div class="gap-part" style="color:${gapColor}">${item.interval}m</div>
+        <div class="gap-part" style="color:${gapColor}">${gapDisplay}</div>
       `;
       container.appendChild(row);
       if (item.interval <= 20 && item.interval > 0) { total += item.interval; count++; }
